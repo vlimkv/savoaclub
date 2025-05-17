@@ -2,10 +2,12 @@ import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import rooftopImage from "../assets/events/rooftop.jpg";
 import RegisterModal from "../components/RegisterModal";
-import ScrollToTopButton from "../components/ScrollToTopButton";
+import Cookies from "js-cookie";
 
 export default function Events() {
   const [modalOpen, setModalOpen] = useState(false);
+  const [modalMode, setModalMode] = useState("form");
+  const [eventName, setEventName] = useState("");
 
   const event = {
     title: "Pilates on the Rooftop",
@@ -29,6 +31,19 @@ export default function Events() {
     image: rooftopImage,
   };
 
+  const handleOpenModal = () => {
+    const submittedBefore = Cookies.get("savoa_submitted");
+    setEventName(event.title);
+
+    if (submittedBefore) {
+      setModalMode("info"); 
+    } else {
+      setModalMode("form"); 
+    }
+
+    setModalOpen(true);
+  };
+
   return (
     <div className="w-full bg-gradient-to-b from-[#f8f0de] to-[#f2e8d4] py-8 px-4 sm:px-6 font-sans">
       <div className="max-w-5xl mx-auto">
@@ -48,7 +63,6 @@ export default function Events() {
           transition={{ duration: 0.7 }}
           className="bg-white/90 backdrop-blur-md border border-[#004018]/10 rounded-3xl overflow-hidden shadow-lg flex flex-col md:flex-row"
         >
-          {/* Фото */}
           <div className="md:w-1/2 h-64 md:h-auto overflow-hidden">
             <img
               src={event.image}
@@ -57,7 +71,6 @@ export default function Events() {
             />
           </div>
 
-          {/* Контент */}
           <div className="md:w-1/2 p-6 sm:p-8 flex flex-col justify-between">
             <div>
               <h2 className="text-2xl sm:text-3xl font-semibold text-[#004018] mb-2">
@@ -78,7 +91,7 @@ export default function Events() {
             <div className="mt-6 flex items-center justify-between">
               <span className="text-[#004018] text-base font-medium">{event.price}</span>
               <button
-                onClick={() => setModalOpen(true)}
+                onClick={handleOpenModal}
                 className="px-5 py-2 rounded-full bg-[#004018] text-white hover:bg-[#003015] transition text-sm font-light"
               >
                 Записаться
@@ -88,19 +101,16 @@ export default function Events() {
         </motion.div>
       </div>
 
-      {/* Модалка */}
       <AnimatePresence>
         {modalOpen && (
-            <RegisterModal
+          <RegisterModal
             open={modalOpen}
             onClose={() => setModalOpen(false)}
-            eventName={event.title}
-            />
+            eventName={eventName}
+            mode={modalMode}
+          />
         )}
       </AnimatePresence>
-
-      <ScrollToTopButton hidden={modalOpen} />
-
     </div>
   );
 }

@@ -1,27 +1,41 @@
 import { useEffect, useState, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { sendTelegramMessage } from "../utils/sendTelegramMessage";
+import Cookies from "js-cookie";
 
 export default function RegisterModal({ open, onClose, eventName }) {
   const [form, setForm] = useState({ name: "", email: "", phone: "" });
   const [errors, setErrors] = useState({});
   const [submitted, setSubmitted] = useState(false);
   const [shake, setShake] = useState(false);
+  const [alreadySubmitted, setAlreadySubmitted] = useState(false);
   const progressRef = useRef(null);
   const nameInputRef = useRef(null);
 
+  // Проверка на повторную заявку при открытии
   useEffect(() => {
-    if (open && nameInputRef.current) {
-      setTimeout(() => nameInputRef.current.focus(), 100);
+    if (open) {
+      const cookie = Cookies.get("savoa_submitted");
+      if (cookie) setAlreadySubmitted(true);
+      else setAlreadySubmitted(false);
     }
   }, [open]);
 
+  // Auto-focus
+  useEffect(() => {
+    if (open && nameInputRef.current && !alreadySubmitted && !submitted) {
+      setTimeout(() => nameInputRef.current.focus(), 150);
+    }
+  }, [open, alreadySubmitted, submitted]);
+
+  // Escape
   useEffect(() => {
     const handleEscape = (e) => e.key === "Escape" && onClose();
     document.addEventListener("keydown", handleEscape);
     return () => document.removeEventListener("keydown", handleEscape);
   }, [onClose]);
 
+  // Автозакрытие
   useEffect(() => {
     if (submitted) {
       let progress = 0;
@@ -53,33 +67,24 @@ export default function RegisterModal({ open, onClose, eventName }) {
   const handleSubmit = async (e) => {
     e.preventDefault();
     const newErrors = validate();
-
     if (Object.keys(newErrors).length > 0) {
+      setErrors(newErrors);
       setShake(true);
       if (navigator.vibrate) navigator.vibrate(200);
       setTimeout(() => setShake(false), 400);
+      return;
     }
 
-    setErrors(newErrors);
-
-    if (Object.keys(newErrors).length === 0) {
-        try {
-            await sendTelegramMessage({
-            name: form.name,
-            email: form.email,
-            phone: form.phone,
-            eventName,
-            });
-            setSubmitted(true);
-            setForm({ name: "", email: "", phone: "" });
-
-            const audio = new Audio("/success.mp3");
-            audio.play().catch(() => {});
-        } catch {
-            alert("Ошибка отправки. Попробуйте позже.");
-        }
+    try {
+      await sendTelegramMessage({ ...form, eventName });
+      Cookies.set("savoa_submitted", "true", { expires: 30 });
+      setSubmitted(true);
+      setForm({ name: "", email: "", phone: "" });
+      const audio = new Audio("/success.mp3");
+      audio.play();
+    } catch {
+      alert("Ошибка отправки. Попробуйте позже.");
     }
-
   };
 
   const handleChange = (field, value) => {
@@ -92,7 +97,6 @@ export default function RegisterModal({ open, onClose, eventName }) {
   return (
     <AnimatePresence>
       <motion.div
-        key="overlay"
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
@@ -101,14 +105,14 @@ export default function RegisterModal({ open, onClose, eventName }) {
       >
         <AnimatePresence mode="wait">
           <motion.div
-            key={submitted ? "thanks" : "form"}
+            key={submitted ? "thanks" : alreadySubmitted ? "duplicate" : "form"}
             drag="y"
-            dragConstraints={{ top: 0, bottom: 120 }}
-            dragElastic={0.25}
+            dragConstraints={{ top: 0, bottom: 100 }}
+            dragElastic={0.2}
             onDragEnd={(e, info) => {
-              if (info.offset.y > 90) onClose();
+              if (info.offset.y > 80) onClose();
             }}
-            initial={{ y: "100%", opacity: 0, borderRadius: "2rem" }}
+            initial={{ y: "100%", opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
             exit={{ y: "100%", opacity: 0 }}
             transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
@@ -127,7 +131,71 @@ export default function RegisterModal({ open, onClose, eventName }) {
               &times;
             </motion.button>
 
-            {!submitted ? (
+            {/* Повторная заявка */}
+            {alreadySubmitted ? (
+              <div className="text-center py-4">
+                <h2 className="text-xl font-semibold mb-3">
+                  Вы уже отправили заявку
+                </h2>
+                <p className="text-sm text-[#004018]/80 mb-5">
+                  Если вы хотите внести изменения — напишите нам.
+                </p>
+                <a
+                  href="https://wa.me/77001234567"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-2 px-6 py-2 bg-green-500 text-white rounded-full hover:bg-green-600 transition"
+                >
+                  <img
+                    src="https://upload.wikimedia.org/wikipedia/commons/6/6b/WhatsApp.svg"
+                    alt="whatsapp"
+                    className="w-5 h-5"
+                  />
+                  WhatsApp
+                </a>
+              </div>
+            ) : submitted ? (
+              <motion.div
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5 }}
+                className="flex flex-col items-center text-center px-2 sm:px-6 py-6"
+              >
+                <div className="w-16 h-16 rounded-full bg-green-100 text-green-600 flex items-center justify-center mb-4 shadow-md">
+                  <img
+                    src="https://upload.wikimedia.org/wikipedia/commons/6/6b/WhatsApp.svg"
+                    alt="whatsapp"
+                    className="w-10 h-10"
+                  />
+                </div>
+                <h2 className="text-xl sm:text-2xl font-semibold mb-3 text-[#004018]">
+                  Спасибо за регистрацию!
+                </h2>
+                <p className="text-sm sm:text-base text-[#004018]/80 max-w-md mb-5 leading-relaxed">
+                  Мы свяжемся с вами в ближайшее время. Или напишите напрямую:
+                </p>
+                <a
+                  href="https://wa.me/77001234567"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-2 px-6 py-2 rounded-full bg-green-500 text-white hover:bg-green-600 transition text-sm sm:text-base font-medium shadow-md"
+                >
+                  <img
+                    src="https://upload.wikimedia.org/wikipedia/commons/6/6b/WhatsApp.svg"
+                    alt="whatsapp"
+                    className="w-5 h-5"
+                  />
+                  WhatsApp
+                </a>
+                <div className="w-full h-[4px] mt-6 bg-[#e6e6e6] rounded-full overflow-hidden">
+                  <div
+                    ref={progressRef}
+                    className="h-full bg-green-500 transition-all duration-100 ease-linear"
+                    style={{ width: "0%" }}
+                  />
+                </div>
+              </motion.div>
+            ) : (
               <>
                 <h2 className="text-xl sm:text-2xl font-semibold mb-5 text-center">
                   Регистрация на ивент
@@ -175,48 +243,6 @@ export default function RegisterModal({ open, onClose, eventName }) {
                   </button>
                 </form>
               </>
-            ) : (
-              <motion.div
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.5 }}
-                className="flex flex-col items-center text-center px-2 sm:px-6 py-6"
-              >
-                <div className="w-16 h-16 rounded-full bg-green-100 text-green-600 flex items-center justify-center mb-4 shadow-md">
-                  <img
-                    src="https://upload.wikimedia.org/wikipedia/commons/6/6b/WhatsApp.svg"
-                    alt="whatsapp"
-                    className="w-10 h-10"
-                  />
-                </div>
-                <h2 className="text-xl sm:text-2xl font-semibold mb-3 text-[#004018]">
-                  Спасибо за регистрацию!
-                </h2>
-                <p className="text-sm sm:text-base text-[#004018]/80 max-w-md mb-5 leading-relaxed">
-                  Мы свяжемся с вами в ближайшее время для подтверждения и оплаты.
-                  Или напишите нам напрямую:
-                </p>
-                <a
-                  href="https://wa.me/77001234567"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex items-center gap-2 px-6 py-2 rounded-full bg-green-500 text-white hover:bg-green-600 transition text-sm sm:text-base font-medium shadow-md"
-                >
-                  <img
-                    src="https://upload.wikimedia.org/wikipedia/commons/6/6b/WhatsApp.svg"
-                    alt="whatsapp"
-                    className="w-5 h-5"
-                  />
-                  WhatsApp
-                </a>
-                <div className="w-full h-[4px] mt-6 bg-[#e6e6e6] rounded-full overflow-hidden">
-                  <div
-                    ref={progressRef}
-                    className="h-full bg-green-500 transition-all duration-100 ease-linear"
-                    style={{ width: "0%" }}
-                  />
-                </div>
-              </motion.div>
             )}
           </motion.div>
         </AnimatePresence>
