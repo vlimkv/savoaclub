@@ -1,38 +1,53 @@
+import { motion, AnimatePresence } from "framer-motion";
+import { Link } from "react-router-dom";
+import logo from "../assets/logo.svg";
+
 export default function Home() {
   return (
-    <div className="flex flex-col items-center text-center py-24 px-4">
-      <h1 className="text-5xl md:text-6xl font-serif font-extrabold text-[#2f2f2f] mb-6 tracking-tight">
-        Savoa Club
-      </h1>
-      
-      <p className="text-lg md:text-xl text-[#4a4a4a] max-w-2xl mb-8 leading-relaxed">
-        Пространство женской энергии, внутренней гармонии и эстетики. Мы объединяем женщин через ивенты, движение, вдохновение и заботу.
-      </p>
+    <AnimatePresence mode="wait">
+      <div className="min-h-screen bg-[#F8F0DE] text-[#004018] font-sans flex flex-col">
 
-      <button className="mt-4 px-8 py-3 rounded-xl bg-[#bfae97] hover:bg-[#a8957d] text-white font-medium shadow-lg transition-all duration-300">
-        Записаться на ближайший ивент
-      </button>
+        {/* Hero Section */}
+        <motion.div
+          initial={{ opacity: 0, y: 30 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: -30 }}
+          transition={{ duration: 0.5 }}
+          className="flex-grow flex items-center justify-center px-6 py-24"
+        >
+          <div className="text-center max-w-2xl">
+            <motion.h1
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.8 }}
+              className="text-4xl md:text-6xl font-light leading-tight mb-6"
+            >
+              Простота. Эстетика. Гармония.
+            </motion.h1>
 
-      <div className="mt-16 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 max-w-6xl w-full">
-        <div className="bg-white rounded-2xl shadow-lg p-6">
-          <h3 className="text-xl font-semibold mb-2">Pilates & Matcha</h3>
-          <p className="text-sm text-[#4a4a4a]">
-            Утренние занятия с матча-сетом, музыкой и спокойствием.
-          </p>
-        </div>
-        <div className="bg-white rounded-2xl shadow-lg p-6">
-          <h3 className="text-xl font-semibold mb-2">Sunset Yoga</h3>
-          <p className="text-sm text-[#4a4a4a]">
-            Йога на закате с видом на город и живой скрипкой.
-          </p>
-        </div>
-        <div className="bg-white rounded-2xl shadow-lg p-6">
-          <h3 className="text-xl font-semibold mb-2">Wellness Ретриты</h3>
-          <p className="text-sm text-[#4a4a4a]">
-            Медитации, питание, мастер-классы и женское community.
-          </p>
-        </div>
+            <motion.p
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.2, duration: 0.8 }}
+              className="text-lg md:text-xl text-[#004018]/80 mb-8 leading-relaxed"
+            >
+              Savoa Club — пространство для вдохновения и внутреннего баланса. Почувствуй свою мягкую силу.
+            </motion.p>
+
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.4, duration: 0.8 }}
+            >
+              <Link to="/events">
+                <button className="px-6 py-3 rounded-full border border-[#004018] hover:bg-[#004018] hover:text-white transition duration-300 font-medium">
+                  Записаться на ивент
+                </button>
+              </Link>
+            </motion.div>
+          </div>
+        </motion.div>
       </div>
-    </div>
+    </AnimatePresence>
   );
 }
