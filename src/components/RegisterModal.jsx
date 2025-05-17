@@ -1,11 +1,12 @@
-import { useEffect, useState } from "react";
-import { motion } from "framer-motion";
+import { useEffect, useState, useRef } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import { sendTelegramMessage } from "../utils/sendTelegramMessage";
 
-export default function RegisterModal({ open, onClose, eventTitle }) {
+export default function RegisterModal({ open, onClose, eventName }) {
   const [form, setForm] = useState({ name: "", email: "", phone: "" });
   const [errors, setErrors] = useState({});
-  const [submitting, setSubmitting] = useState(false);
+  const [submitted, setSubmitted] = useState(false);
+  const progressRef = useRef(null);
 
   useEffect(() => {
     const handleEscape = (e) => e.key === "Escape" && onClose();
@@ -13,7 +14,23 @@ export default function RegisterModal({ open, onClose, eventTitle }) {
     return () => document.removeEventListener("keydown", handleEscape);
   }, [onClose]);
 
-  if (!open) return null;
+  useEffect(() => {
+    if (submitted) {
+      let progress = 0;
+      const interval = setInterval(() => {
+        progress += 2;
+        if (progressRef.current) {
+          progressRef.current.style.width = `${progress}%`;
+        }
+        if (progress >= 100) {
+          clearInterval(interval);
+          onClose();
+          setSubmitted(false);
+        }
+      }, 100);
+      return () => clearInterval(interval);
+    }
+  }, [submitted, onClose]);
 
   const validate = () => {
     const newErrors = {};
@@ -21,7 +38,7 @@ export default function RegisterModal({ open, onClose, eventTitle }) {
     if (!form.email.match(/^[^\s@]+@[^\s@]+\.[^\s@]+$/))
       newErrors.email = "Введите корректный email";
     if (!form.phone.match(/^(\+7|8)?7\d{9}$/))
-      newErrors.phone = "Введите корректный номер (пример: 87011234567)";
+      newErrors.phone = "Введите корректный номер (например, 87001234567)";
     return newErrors;
   };
 
@@ -29,18 +46,20 @@ export default function RegisterModal({ open, onClose, eventTitle }) {
     e.preventDefault();
     const newErrors = validate();
     setErrors(newErrors);
-    if (Object.keys(newErrors).length > 0) return;
 
-    setSubmitting(true);
-    const success = await sendTelegramMessage(form, eventTitle);
-    setSubmitting(false);
-
-    if (success) {
-      alert("Спасибо за регистрацию! Мы свяжемся с вами.");
-      setForm({ name: "", email: "", phone: "" });
-      onClose();
-    } else {
-      alert("Ошибка отправки. Попробуйте снова.");
+    if (Object.keys(newErrors).length === 0) {
+      try {
+        await sendTelegramMessage({
+          name: form.name,
+          email: form.email,
+          phone: form.phone,
+          eventName,
+        });
+        setSubmitted(true);
+        setForm({ name: "", email: "", phone: "" });
+      } catch {
+        alert("Ошибка отправки. Попробуйте позже.");
+      }
     }
   };
 
@@ -49,60 +68,137 @@ export default function RegisterModal({ open, onClose, eventTitle }) {
     setErrors((prev) => ({ ...prev, [field]: null }));
   };
 
+  if (!open) return null;
+
   return (
-    <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm flex items-center justify-center px-4">
+    <AnimatePresence>
       <motion.div
-        initial={{ opacity: 0, y: -20, scale: 0.95 }}
-        animate={{ opacity: 1, y: 0, scale: 1 }}
-        exit={{ opacity: 0, y: -20, scale: 0.95 }}
-        transition={{ duration: 0.3 }}
-        className="bg-white rounded-2xl p-6 sm:p-8 w-full max-w-md relative text-[#004018]"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+        transition={{ duration: 0.25 }}
+        className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm flex items-end justify-center px-2 sm:px-4"
       >
-        <motion.button
-          onClick={onClose}
-          initial={{ opacity: 0, x: 10 }}
-          animate={{ opacity: 1, x: 0 }}
-          transition={{ delay: 0.3 }}
-          className="absolute top-4 right-4 text-[#999] hover:text-[#004018] text-2xl"
-        >
-          &times;
-        </motion.button>
-
-        <h2 className="text-2xl font-semibold mb-6 text-center">Регистрация на ивент</h2>
-        <form onSubmit={handleSubmit} className="space-y-4">
-          {["name", "email", "phone"].map((field) => (
-            <div key={field}>
-              <input
-                type={field === "email" ? "email" : field === "phone" ? "tel" : "text"}
-                placeholder={
-                  field === "name" ? "Ваше имя" :
-                  field === "email" ? "Email" : "Телефон"
-                }
-                value={form[field]}
-                onChange={(e) => handleChange(field, e.target.value)}
-                className={`w-full px-4 py-3 border rounded-full text-sm focus:outline-none focus:ring-2 focus:ring-[#004018]/20 ${
-                  errors[field] ? "border-red-400" : "border-[#ddd]"
-                }`}
-              />
-              {errors[field] && (
-                <p className="text-xs text-red-500 mt-1">{errors[field]}</p>
-              )}
-            </div>
-          ))}
-
-          <button
-            type="submit"
-            disabled={submitting}
-            className={`w-full py-3 rounded-full text-sm transition font-medium ${
-              submitting
-                ? "bg-[#ccc] text-white cursor-not-allowed"
-                : "bg-[#004018] hover:bg-[#003015] text-white"
-            }`}
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={submitted ? "thanks" : "form"}
+            drag="y"
+            dragConstraints={{ top: 0, bottom: 100 }}
+            dragElastic={0.2}
+            onDragEnd={(e, info) => {
+              if (info.offset.y > 80) onClose(); // свайп вниз
+            }}
+            initial={{ y: "100%", opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            exit={{ y: "100%", opacity: 0 }}
+            transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
+            className="w-full max-w-md sm:max-w-lg bg-white rounded-t-2xl p-6 pt-10 shadow-2xl relative text-[#004018]"
           >
-            {submitting ? "Отправка..." : "Отправить заявку"}
-          </button>
-        </form>
+            <motion.button
+              onClick={onClose}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.3 }}
+              className="absolute top-3 right-4 text-[#777] hover:text-black text-2xl"
+              aria-label="Закрыть"
+            >
+              &times;
+            </motion.button>
+
+            {!submitted ? (
+              <>
+                <h2 className="text-xl sm:text-2xl font-semibold mb-5 text-center">
+                  Регистрация на ивент
+                </h2>
+                <form onSubmit={handleSubmit} className="space-y-4">
+                  <input
+                    type="text"
+                    placeholder="Ваше имя"
+                    value={form.name}
+                    onChange={(e) => handleChange("name", e.target.value)}
+                    className={`w-full px-4 py-2 border rounded-md focus:ring-2 focus:ring-[#004018]/20 ${
+                      errors.name ? "border-red-400" : "border-[#ccc]"
+                    }`}
+                  />
+                  {errors.name && <p className="text-xs text-red-500">{errors.name}</p>}
+
+                  <input
+                    type="email"
+                    placeholder="Email"
+                    value={form.email}
+                    onChange={(e) => handleChange("email", e.target.value)}
+                    className={`w-full px-4 py-2 border rounded-md focus:ring-2 focus:ring-[#004018]/20 ${
+                      errors.email ? "border-red-400" : "border-[#ccc]"
+                    }`}
+                  />
+                  {errors.email && <p className="text-xs text-red-500">{errors.email}</p>}
+
+                  <input
+                    type="tel"
+                    placeholder="Телефон"
+                    value={form.phone}
+                    onChange={(e) => handleChange("phone", e.target.value)}
+                    className={`w-full px-4 py-2 border rounded-md focus:ring-2 focus:ring-[#004018]/20 ${
+                      errors.phone ? "border-red-400" : "border-[#ccc]"
+                    }`}
+                  />
+                  {errors.phone && <p className="text-xs text-red-500">{errors.phone}</p>}
+
+                  <button
+                    type="submit"
+                    className="w-full py-2 bg-[#004018] text-white rounded-full hover:bg-[#003015] transition font-medium"
+                  >
+                    Отправить заявку
+                  </button>
+                </form>
+              </>
+            ) : (
+              <motion.div
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5 }}
+                className="flex flex-col items-center text-center px-2 sm:px-6 py-6"
+              >
+                <div className="w-16 h-16 rounded-full bg-green-100 text-green-600 flex items-center justify-center mb-4 shadow-md">
+                  <img
+                    src="https://upload.wikimedia.org/wikipedia/commons/6/6b/WhatsApp.svg"
+                    alt="whatsapp"
+                    className="w-10 h-10"
+                  />
+                </div>
+                <h2 className="text-xl sm:text-2xl font-semibold mb-3 text-[#004018]">
+                  Спасибо за регистрацию!
+                </h2>
+                <p className="text-sm sm:text-base text-[#004018]/80 max-w-md mb-5 leading-relaxed">
+                  Мы свяжемся с вами в ближайшее время для подтверждения и оплаты.
+                  Или напишите нам напрямую:
+                </p>
+                <a
+                  href="https://wa.me/77001234567"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-2 px-6 py-2 rounded-full bg-green-500 text-white hover:bg-green-600 transition text-sm sm:text-base font-medium shadow-md"
+                >
+                  <img
+                    src="https://upload.wikimedia.org/wikipedia/commons/6/6b/WhatsApp.svg"
+                    alt="whatsapp"
+                    className="w-5 h-5"
+                  />
+                  WhatsApp
+                </a>
+                {/* Progress bar */}
+                <div className="w-full h-[4px] mt-6 bg-[#e6e6e6] rounded-full overflow-hidden">
+                  <div
+                    ref={progressRef}
+                    className="h-full bg-green-500 transition-all duration-100 ease-linear"
+                    style={{ width: "0%" }}
+                  />
+                </div>
+              </motion.div>
+            )}
+          </motion.div>
+        </AnimatePresence>
       </motion.div>
-    </div>
+    </AnimatePresence>
   );
 }

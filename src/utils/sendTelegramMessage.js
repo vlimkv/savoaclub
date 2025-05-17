@@ -4,6 +4,7 @@ export async function sendTelegramMessage({ name, email, phone, eventName }) {
 
   const message = `
 📩 *Новая заявка на ивент*
+
 🧘 *Ивент:* ${eventName}
 👤 *Имя:* ${name}
 📧 *Email:* ${email}

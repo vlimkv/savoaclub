@@ -2,6 +2,7 @@ import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import rooftopImage from "../assets/events/rooftop.jpg";
 import RegisterModal from "../components/RegisterModal";
+import ScrollToTopButton from "../components/ScrollToTopButton";
 
 export default function Events() {
   const [modalOpen, setModalOpen] = useState(false);
@@ -90,13 +91,16 @@ export default function Events() {
       {/* Модалка */}
       <AnimatePresence>
         {modalOpen && (
-          <RegisterModal
+            <RegisterModal
             open={modalOpen}
             onClose={() => setModalOpen(false)}
-            eventTitle={event.title}
-          />
+            eventName={event.title}
+            />
         )}
       </AnimatePresence>
+
+      <ScrollToTopButton hidden={modalOpen} />
+
     </div>
   );
 }
