@@ -1,48 +1,80 @@
-import bottleImg from "../assets/shop/bottle.jpg";
+// pages/Shop.jsx
+import { useState } from "react";
+import { motion } from "framer-motion";
+import ConfirmModal from "../components/ConfirmModal";
+import bottleImage from "../assets/shop/bottle.jpg";
+import bottleThumb from "../assets/shop/bottle.jpg";
 
 export default function Shop() {
-  const product = {
-    name: "Savoa Club Bottle",
-    price: "7 000 ₸",
-    description: `Гидратация на новом уровне. Бутылка из нержавеющей стали объёмом 600 мл с лазерной гравировкой логотипа SAVOA. Поддерживает температуру, герметична, подходит для посудомоечной машины. Упакована в фирменную коробку — идеальна для подарка.`,
-    image: bottleImg,
-    isNew: true,
+  const [modalOpen, setModalOpen] = useState(false);
+  const [activeProduct, setActiveProduct] = useState(null);
+
+  const products = [
+    {
+      name: "Savoa club Bottle",
+      price: "7 000 ₸",
+      description:
+        "Гидратация на новом уровне. Бутылка из нержавеющей стали объёмом 600 мл — лаконичный спутник в вашем ритме жизни. Сохраняет холод, подходит для ПММ и упакована в коробку.",
+      images: [bottleImage, bottleThumb],
+    },
+    // Добавьте другие товары при необходимости
+  ];
+
+  const handleAdd = (product) => {
+    setActiveProduct(product.name);
+    setModalOpen(true);
   };
 
   return (
     <div className="w-full bg-gradient-to-b from-[#f8f0de] to-[#f2e8d4] py-16 px-4 sm:px-6 font-sans">
-      <div className="max-w-3xl mx-auto bg-white/80 backdrop-blur-md border border-[#004018]/10 rounded-[2rem] shadow-[0_10px_30px_rgba(0,64,24,0.06)] p-6 sm:p-10 flex flex-col md:flex-row gap-8">
-        
-        {/* Фото с бейджем */}
-        <div className="relative w-full md:w-1/2 overflow-hidden rounded-2xl">
-          <img
-            src={product.image}
-            alt={product.name}
-            className="w-full h-auto object-cover transition-transform duration-500 hover:scale-105 rounded-2xl"
-          />
-          {product.isNew && (
-            <span className="absolute top-3 left-3 bg-[#004018] text-white text-[11px] tracking-wide px-3 py-1 rounded-full shadow-md">
-              NEW
-            </span>
-          )}
-        </div>
+      <div className="max-w-6xl mx-auto text-center mb-12">
+        <h1 className="text-3xl sm:text-4xl md:text-5xl font-light text-[#004018]">
+          Магазин <span className="italic">Savoa</span>
+        </h1>
+        <div className="mt-3 h-[2px] w-12 bg-[#004018]/30 mx-auto rounded-full" />
+      </div>
 
-        {/* Контент */}
-        <div className="flex-1 flex flex-col justify-between">
-          <div>
-            <h2 className="text-2xl sm:text-3xl font-semibold text-[#004018] mb-3 leading-snug">{product.name}</h2>
-            <p className="text-[#004018]/70 font-medium mb-4 text-lg">{product.price}</p>
-            <p className="text-sm text-[#004018]/90 leading-relaxed whitespace-pre-line">{product.description}</p>
-          </div>
-
-          {/* Кнопка */}
-          <div className="mt-6">
-            <button className="w-full sm:w-auto px-6 py-2.5 rounded-full bg-[#004018] text-white hover:bg-[#003015] transition text-sm font-medium shadow-md">
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-10 max-w-6xl mx-auto">
+        {products.map((product, index) => (
+          <motion.div
+            key={index}
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.4, delay: index * 0.1 }}
+            className="bg-white/90 backdrop-blur-md border border-[#004018]/10 rounded-3xl p-6 shadow-md flex flex-col"
+          >
+            <div className="relative mb-4 overflow-hidden rounded-xl aspect-[4/3]">
+              <img
+                src={product.images[0]}
+                alt={product.name}
+                className="object-cover w-full h-full rounded-xl hover:scale-105 transition-transform"
+              />
+              <span className="absolute top-2 left-2 bg-green-500 text-white text-xs px-2 py-1 rounded-full">
+                New
+              </span>
+            </div>
+            <h2 className="text-lg sm:text-xl font-semibold text-[#004018] mb-2">
+              {product.name}
+            </h2>
+            <p className="text-[#004018]/70 font-medium mb-1">{product.price}</p>
+            <p className="text-sm text-[#004018]/80 mb-6 leading-relaxed">
+              {product.description}
+            </p>
+            <button
+              onClick={() => handleAdd(product)}
+              className="mt-auto px-5 py-2 rounded-full bg-[#004018] text-white hover:bg-[#003015] transition text-sm font-light"
+            >
               В корзину
             </button>
-          </div>
-        </div>
+          </motion.div>
+        ))}
       </div>
+
+      <ConfirmModal
+        open={modalOpen}
+        onClose={() => setModalOpen(false)}
+        productName={activeProduct}
+      />
     </div>
   );
 }
