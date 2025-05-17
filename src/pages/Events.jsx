@@ -38,6 +38,7 @@ export default function Events() {
           className="text-3xl sm:text-4xl md:text-5xl font-light text-[#004018] text-center mb-10"
         >
           Ближайшие ивенты
+          <div className="mt-3 h-[2px] w-12 bg-[#004018]/30 mx-auto rounded-full" />
         </motion.h1>
 
         <motion.div

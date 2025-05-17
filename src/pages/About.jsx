@@ -86,9 +86,6 @@ export default function About() {
 
       <div className="my-6 h-[1px] w-full bg-[#004018]/10 backdrop-blur-sm rounded-full" />
 
-      {/* Декор */}
-      <div className="absolute bottom-[-60px] right-[-30px] w-40 h-40 bg-[url('/texture.svg')] bg-contain bg-no-repeat opacity-10 pointer-events-none hidden md:block" />
-
       {/* BREATHE / MOVE / GLOW */}
       <motion.section
         variants={containerVariants}
