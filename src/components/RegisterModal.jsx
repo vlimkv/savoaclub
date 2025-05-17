@@ -56,26 +56,28 @@ export default function RegisterModal({ open, onClose, eventName }) {
   const handleSubmit = async (e) => {
     e.preventDefault();
     const newErrors = validate();
+
+    if (Object.keys(newErrors).length > 0) {
+        setShake(true); 
+        if (navigator.vibrate) navigator.vibrate(200);
+        setTimeout(() => setShake(false), 400);
+    }
+
     setErrors(newErrors);
 
     if (Object.keys(newErrors).length === 0) {
-      try {
+        try {
         await sendTelegramMessage({
-          name: form.name,
-          email: form.email,
-          phone: form.phone,
-          eventName,
+            name: form.name,
+            email: form.email,
+            phone: form.phone,
+            eventName,
         });
         setSubmitted(true);
         setForm({ name: "", email: "", phone: "" });
-      } catch {
+        } catch {
         alert("Ошибка отправки. Попробуйте позже.");
-      }
-    } else {
-      // Вибрация и анимация ошибки
-      setShake(true);
-      navigator.vibrate?.(200);
-      setTimeout(() => setShake(false), 400);
+        }
     }
   };
 
