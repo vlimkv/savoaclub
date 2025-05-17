@@ -44,7 +44,7 @@ export default function Shop() {
       initial={{ opacity: 0, scale: 0.98 }}
       animate={{ opacity: 1, scale: 1 }}
       transition={{ duration: 0.6, ease: [0.4, 0, 0.2, 1] }}
-      className="w-full min-h-screen bg-gradient-to-b from-[#f8f0de] to-[#f2e8d4] flex items-center justify-center px-4 py-5 font-sans"
+      className="w-full bg-gradient-to-b from-[#f8f0de] to-[#f2e8d4] flex items-center justify-center px-4 py-20 font-sans"
     >
       <div className="max-w-3xl w-full flex flex-col items-center text-center">
         <motion.img
