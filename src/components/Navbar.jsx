@@ -14,7 +14,7 @@ export default function Navbar() {
     { path: "/about", label: "О нас" },
     { path: "/events", label: "Ивенты" },
     { path: "/shop", label: "Магазин" },
-    { path: "/contact", label: "Контакты" },
+    { path: "/contact", label: "Сотрудничество" },
   ];
 
   return (

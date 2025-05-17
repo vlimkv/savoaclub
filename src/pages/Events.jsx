@@ -12,7 +12,7 @@ export default function Events() {
   const event = {
     title: "Pilates on the Rooftop",
     date: "24 мая 2025",
-    time: "11:00",
+    time: "10:00",
     location: "Sheraton Astana Rooftop",
     description: [
       "Приглашаем вас на утренний пилатес-класс под открытым небом — на крыше отеля Sheraton с лучшим видом на город.",
