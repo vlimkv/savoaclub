@@ -21,37 +21,38 @@ export default function Home() {
         />
 
         {/* Content Section */}
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-          transition={{ duration: 0.8 }}
-          className="relative z-10 flex flex-col items-center justify-center min-h-[70vh] sm:min-h-screen px-6 text-center"
-        >
-          <div className="w-full max-w-5xl px-9 md:px-8">
-            <motion.h1
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 1 }}
-              className="text-4xl sm:text-4xl md:text-6xl font-light leading-tight mb-6 drop-shadow-2xl"
-            >
-              Пространство для движения, дыхания и перезагрузки.
-            </motion.h1>
+<motion.div
+  initial={{ opacity: 0 }}
+  animate={{ opacity: 1 }}
+  exit={{ opacity: 0 }}
+  transition={{ duration: 0.8 }}
+  className="relative z-10 flex flex-col items-center justify-center min-h-[70vh] sm:min-h-screen px-6 text-center"
+>
+  <div className="w-full max-w-[95%] sm:max-w-4xl px-4 sm:px-8"> {/* ← обновлённая ширина */}
+    <motion.h1
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 1 }}
+      className="text-5xl sm:text-4xl md:text-6xl font-light leading-snug sm:leading-tight mb-6 drop-shadow-2xl"
+    >
+      BREATHE. MOVE. GLOW.
+    </motion.h1>
 
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.6, duration: 1 }}
-              className="mt-10"
-            >
-              <Link to="/events">
-                <button className="px-8 py-4 rounded-full border border-white bg-white/90 text-[#004018] hover:bg-[#004018] hover:text-white transition duration-300 font-extralight text-base sm:text-lg uppercase tracking-wide">
-                  Записаться на ивент
-                </button>
-              </Link>
-            </motion.div>
-          </div>
-        </motion.div>
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ delay: 0.6, duration: 1 }}
+      className="mt-10"
+    >
+      <Link to="/events">
+        <button className="px-8 py-4 rounded-full border border-white bg-white/90 text-[#004018] hover:bg-[#004018] hover:text-white transition duration-300 font-extralight text-base sm:text-lg uppercase tracking-wide">
+          Записаться на ивент
+        </button>
+      </Link>
+    </motion.div>
+  </div>
+</motion.div>
+
       </div>
     </AnimatePresence>
   );
