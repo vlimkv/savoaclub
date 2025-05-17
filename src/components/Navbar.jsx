@@ -3,6 +3,7 @@ import { Link, useLocation } from "react-router-dom";
 import logo from "../assets/logo.svg";
 import { Menu, X } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
+import InfoTicker from "./InfoTicker";
 
 export default function Navbar() {
   const [menuOpen, setMenuOpen] = useState(false);
@@ -18,7 +19,8 @@ export default function Navbar() {
 
   return (
     <>
-      {/* Apple-inspired top info bar with mobile-first optimization */}
+    <InfoTicker />
+      {/* Apple-inspired top info bar with mobile-first optimization
       <motion.div
         initial={{ opacity: 0, y: -10 }}
         animate={{ opacity: 1, y: 0 }}
@@ -30,7 +32,7 @@ export default function Navbar() {
   <span className="italic">Место, где энергия, забота и вдохновение соединяются.</span>
 </p>
         </div>
-      </motion.div>
+      </motion.div> */}
 
       <nav className="w-full bg-[#F8F0DE] border-b border-[#004018]/20 sticky top-0 z-50">
         <div className="max-w-6xl mx-auto px-4 py-4 relative flex items-center justify-between">
