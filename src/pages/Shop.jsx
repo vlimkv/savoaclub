@@ -74,7 +74,6 @@ export default function Shop() {
           className="text-[#004018]/70 text-sm sm:text-base leading-relaxed max-w-xl mb-6"
         >
           Мы готовим коллекцию, вдохновлённую эстетикой, балансом и заботой.
-          Подпишитесь в Instagram, чтобы не пропустить запуск!
         </motion.p>
 
         {/* Таймер */}
