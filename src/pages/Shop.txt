@@ -1,0 +1,84 @@
+import { useState } from "react";
+import { motion } from "framer-motion";
+import { useCartContext } from "../context/CartContext";
+
+
+
+const products = [
+  {
+    name: "Savoa Bottle",
+    price: "7 000 ₸",
+    description: `Гидратация на новом уровне. Лаконичная и практичная, бутылка объёмом 600 мл создана для баланса. Сохраняет холод, герметична и подходит для посудомойки.`,
+    images: ["/shop/bottle.jpg", "/shop/bottle.jpg"],
+    badge: "New",
+  },
+  {
+    name: "Арома-свеча 'Тишина'",
+    price: "6 900 ₸",
+    description: "Свеча ручной работы с ароматом лаванды, ванили и белого чая.",
+    images: ["/shop/candle1.jpg", "/shop/candle2.jpg"],
+  },
+  {
+    name: "Худи 'Soft Energy'",
+    price: "14 900 ₸",
+    description: "Оверсайз худи кремового цвета с вышивкой и мягким флисом внутри.",
+    images: ["/shop/hoodie1.jpg", "/shop/hoodie2.jpg"],
+  },
+];
+
+export default function Shop() {
+    const { addToCart } = useCartContext();
+  
+    return (
+    <div className="w-full bg-gradient-to-b from-[#f8f0de] to-[#f2e8d4] py-16 px-4 sm:px-6 font-sans">
+      <div className="max-w-6xl mx-auto text-center mb-12">
+        <h1 className="text-4xl sm:text-5xl font-light text-[#004018]">
+          Магазин <span className="italic">Savoa</span>
+        </h1>
+        <div className="mt-3 h-[2px] w-12 bg-[#004018]/30 mx-auto rounded-full" />
+      </div>
+
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-10 max-w-6xl mx-auto">
+        {products.map((product, index) => (
+          <motion.div
+            key={index}
+            initial={{ opacity: 0, scale: 0.94 }}
+            whileInView={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 0.5, delay: index * 0.1 }}
+            viewport={{ once: true }}
+            className="bg-white/90 backdrop-blur-md border border-[#004018]/10 rounded-3xl shadow-lg p-4 sm:p-6 flex flex-col"
+          >
+            {/* Галерея */}
+            <div className="relative h-48 sm:h-52 w-full mb-4 rounded-xl overflow-hidden">
+              <img
+                src={product.images[0]}
+                alt={product.name}
+                className="w-full h-full object-cover object-center hover:scale-105 transition-transform duration-500"
+              />
+              {product.badge && (
+                <span className="absolute top-3 left-3 bg-[#004018] text-white text-xs px-3 py-1 rounded-full shadow">
+                  {product.badge}
+                </span>
+              )}
+            </div>
+
+            <h2 className="text-lg sm:text-xl font-semibold text-[#004018] mb-1">
+              {product.name}
+            </h2>
+            <p className="text-[#004018]/70 font-medium mb-2">{product.price}</p>
+            <p className="text-sm text-[#004018]/80 mb-5 leading-relaxed">
+              {product.description}
+            </p>
+            <button
+                onClick={() => addToCart(product)}
+                className="mt-auto px-5 py-2 rounded-full bg-[#004018] text-white hover:bg-[#003015] transition text-sm font-light"
+            >
+                В корзину
+            </button>
+          </motion.div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
