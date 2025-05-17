@@ -12,7 +12,7 @@ export default function App() {
       <div className="min-h-screen bg-[#F8F0DE] text-[#004018] font-sans">
         <Navbar /> {/* ⬅️ навбар для всех страниц */}
 
-        <main className="p-6">
+        <main className="p-0">
           <Routes>
             <Route path="/" element={<Home />} />
             <Route path="/about" element={<About />} />

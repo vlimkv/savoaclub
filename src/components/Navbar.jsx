@@ -18,15 +18,19 @@ export default function Navbar() {
 
   return (
     <>
-      {/* Elegant top info bar */}
-      <div className="w-full bg-[#F8F0DE] border-b border-[#004018]/10">
-        <div className="max-w-6xl mx-auto px-4 py-2">
-          <p className="text-center text-sm text-[#004018] font-light tracking-tight">
-            <span className="block sm:inline">Место, где</span>{" "}
-            <span className="italic">энергия</span>, <span className="italic">забота</span> и <span className="italic">вдохновение</span> соединяются.
-          </p>
+      {/* Apple-inspired top info bar with mobile-first optimization */}
+      <motion.div
+        initial={{ opacity: 0, y: -10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.6 }}
+        className="w-full bg-[#F8F0DE] border-b border-[#004018]/10 shadow-sm"
+      >
+        <div className="max-w-6xl mx-auto px-4 py-2 sm:py-2.5">
+          <p className="text-center text-[13px] sm:text-sm text-[#004018] font-light tracking-tight leading-snug sm:leading-normal px-4">
+  <span className="italic">Место, где энергия, забота и вдохновение соединяются.</span>
+</p>
         </div>
-      </div>
+      </motion.div>
 
       <nav className="w-full bg-[#F8F0DE] border-b border-[#004018]/20 sticky top-0 z-50">
         <div className="max-w-6xl mx-auto px-4 py-4 relative flex items-center justify-between">
@@ -75,7 +79,7 @@ export default function Navbar() {
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -10 }}
               transition={{ duration: 0.3 }}
-              className="md:hidden px-6 pb-4 flex flex-col gap-3 text-sm font-medium text-[#004018]"
+              className="md:hidden absolute top-full left-0 w-full bg-[#F8F0DE] px-6 pb-4 flex flex-col gap-3 text-sm font-medium text-[#004018] shadow-md z-40"
             >
               {navLinks.map(({ path, label }) => (
                 <Link

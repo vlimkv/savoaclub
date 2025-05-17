@@ -1,21 +1,24 @@
 import { motion, AnimatePresence } from "framer-motion";
 import { Link } from "react-router-dom";
 import logo from "../assets/logo.svg";
+import background from "../assets/home.jpg"; // добавь подходящий фон в папку assets
 
 export default function Home() {
   return (
     <AnimatePresence mode="wait">
-      <div className="min-h-screen bg-[#F8F0DE] text-[#004018] font-sans flex flex-col">
-
+      <div
+        className="min-h-screen bg-[#F8F0DE] text-[#004018] font-sans flex flex-col bg-cover bg-center"
+        style={{ backgroundImage: `url(${background})` }}
+      >
         {/* Hero Section */}
         <motion.div
           initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
           exit={{ opacity: 0, y: -30 }}
           transition={{ duration: 0.5 }}
-          className="flex-grow flex items-center justify-center px-6 py-24"
+          className="flex-grow flex items-center justify-center p-0 backdrop-blur-sm bg-[#F8F0DE]/60"
         >
-          <div className="text-center max-w-2xl">
+          <div className="text-center max-w-2xl px-6">
             <motion.h1
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
