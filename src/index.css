@@ -15,3 +15,10 @@
   animation: marquee 30s linear infinite;
   will-change: transform;
 }
+
+@layer base {
+  body {
+    background-color: #F8F0DE;
+    padding-top: env(safe-area-inset-top);
+  }
+}
