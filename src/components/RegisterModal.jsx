@@ -141,7 +141,7 @@ export default function RegisterModal({ open, onClose, eventName }) {
                   Если вы хотите внести изменения — напишите нам.
                 </p>
                 <a
-                  href="https://wa.me/77001234567"
+                  href="https://wa.me/77760404661"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="inline-flex items-center gap-2 px-6 py-2 bg-green-500 text-white rounded-full hover:bg-green-600 transition"
@@ -175,7 +175,7 @@ export default function RegisterModal({ open, onClose, eventName }) {
                   Мы свяжемся с вами в ближайшее время. Или напишите напрямую:
                 </p>
                 <a
-                  href="https://wa.me/77001234567"
+                  href="https://wa.me/77760404661"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="flex items-center gap-2 px-6 py-2 rounded-full bg-green-500 text-white hover:bg-green-600 transition text-sm sm:text-base font-medium shadow-md"
