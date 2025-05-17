@@ -90,7 +90,11 @@ export default function Events() {
       {/* Модалка */}
       <AnimatePresence>
         {modalOpen && (
-          <RegisterModal open={modalOpen} onClose={() => setModalOpen(false)} />
+          <RegisterModal
+            open={modalOpen}
+            onClose={() => setModalOpen(false)}
+            eventTitle={event.title}
+          />
         )}
       </AnimatePresence>
     </div>
