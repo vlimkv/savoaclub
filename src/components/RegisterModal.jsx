@@ -6,14 +6,25 @@ export default function RegisterModal({ open, onClose, eventName }) {
   const [form, setForm] = useState({ name: "", email: "", phone: "" });
   const [errors, setErrors] = useState({});
   const [submitted, setSubmitted] = useState(false);
+  const [shake, setShake] = useState(false);
   const progressRef = useRef(null);
+  const nameInputRef = useRef(null);
 
+  // Auto-focus на первое поле
+  useEffect(() => {
+    if (open && nameInputRef.current) {
+      setTimeout(() => nameInputRef.current.focus(), 100);
+    }
+  }, [open]);
+
+  // Закрытие по Escape
   useEffect(() => {
     const handleEscape = (e) => e.key === "Escape" && onClose();
     document.addEventListener("keydown", handleEscape);
     return () => document.removeEventListener("keydown", handleEscape);
   }, [onClose]);
 
+  // Прогресс-бар и автозакрытие
   useEffect(() => {
     if (submitted) {
       let progress = 0;
@@ -60,6 +71,11 @@ export default function RegisterModal({ open, onClose, eventName }) {
       } catch {
         alert("Ошибка отправки. Попробуйте позже.");
       }
+    } else {
+      // Вибрация и анимация ошибки
+      setShake(true);
+      navigator.vibrate?.(200);
+      setTimeout(() => setShake(false), 400);
     }
   };
 
@@ -86,13 +102,15 @@ export default function RegisterModal({ open, onClose, eventName }) {
             dragConstraints={{ top: 0, bottom: 100 }}
             dragElastic={0.2}
             onDragEnd={(e, info) => {
-              if (info.offset.y > 80) onClose(); // свайп вниз
+              if (info.offset.y > 80) onClose();
             }}
             initial={{ y: "100%", opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
             exit={{ y: "100%", opacity: 0 }}
             transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
-            className="w-full max-w-md sm:max-w-lg bg-white rounded-t-2xl p-6 pt-10 shadow-2xl relative text-[#004018]"
+            className={`w-full max-w-md sm:max-w-lg bg-white rounded-t-2xl p-6 pt-10 shadow-2xl relative text-[#004018] ${
+              shake ? "animate-shake" : ""
+            }`}
           >
             <motion.button
               onClick={onClose}
@@ -112,6 +130,7 @@ export default function RegisterModal({ open, onClose, eventName }) {
                 </h2>
                 <form onSubmit={handleSubmit} className="space-y-4">
                   <input
+                    ref={nameInputRef}
                     type="text"
                     placeholder="Ваше имя"
                     value={form.name}
@@ -186,7 +205,6 @@ export default function RegisterModal({ open, onClose, eventName }) {
                   />
                   WhatsApp
                 </a>
-                {/* Progress bar */}
                 <div className="w-full h-[4px] mt-6 bg-[#e6e6e6] rounded-full overflow-hidden">
                   <div
                     ref={progressRef}
