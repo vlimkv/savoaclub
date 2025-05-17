@@ -10,21 +10,18 @@ export default function RegisterModal({ open, onClose, eventName }) {
   const progressRef = useRef(null);
   const nameInputRef = useRef(null);
 
-  // Auto-focus на первое поле
   useEffect(() => {
     if (open && nameInputRef.current) {
       setTimeout(() => nameInputRef.current.focus(), 100);
     }
   }, [open]);
 
-  // Закрытие по Escape
   useEffect(() => {
     const handleEscape = (e) => e.key === "Escape" && onClose();
     document.addEventListener("keydown", handleEscape);
     return () => document.removeEventListener("keydown", handleEscape);
   }, [onClose]);
 
-  // Прогресс-бар и автозакрытие
   useEffect(() => {
     if (submitted) {
       let progress = 0;
@@ -58,27 +55,31 @@ export default function RegisterModal({ open, onClose, eventName }) {
     const newErrors = validate();
 
     if (Object.keys(newErrors).length > 0) {
-        setShake(true); 
-        if (navigator.vibrate) navigator.vibrate(200);
-        setTimeout(() => setShake(false), 400);
+      setShake(true);
+      if (navigator.vibrate) navigator.vibrate(200);
+      setTimeout(() => setShake(false), 400);
     }
 
     setErrors(newErrors);
 
     if (Object.keys(newErrors).length === 0) {
         try {
-        await sendTelegramMessage({
+            await sendTelegramMessage({
             name: form.name,
             email: form.email,
             phone: form.phone,
             eventName,
-        });
-        setSubmitted(true);
-        setForm({ name: "", email: "", phone: "" });
+            });
+            setSubmitted(true);
+            setForm({ name: "", email: "", phone: "" });
+
+            const audio = new Audio("/success.mp3");
+            audio.play().catch(() => {});
         } catch {
-        alert("Ошибка отправки. Попробуйте позже.");
+            alert("Ошибка отправки. Попробуйте позже.");
         }
     }
+
   };
 
   const handleChange = (field, value) => {
@@ -91,6 +92,7 @@ export default function RegisterModal({ open, onClose, eventName }) {
   return (
     <AnimatePresence>
       <motion.div
+        key="overlay"
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
@@ -101,12 +103,12 @@ export default function RegisterModal({ open, onClose, eventName }) {
           <motion.div
             key={submitted ? "thanks" : "form"}
             drag="y"
-            dragConstraints={{ top: 0, bottom: 100 }}
-            dragElastic={0.2}
+            dragConstraints={{ top: 0, bottom: 120 }}
+            dragElastic={0.25}
             onDragEnd={(e, info) => {
-              if (info.offset.y > 80) onClose();
+              if (info.offset.y > 90) onClose();
             }}
-            initial={{ y: "100%", opacity: 0 }}
+            initial={{ y: "100%", opacity: 0, borderRadius: "2rem" }}
             animate={{ y: 0, opacity: 1 }}
             exit={{ y: "100%", opacity: 0 }}
             transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
