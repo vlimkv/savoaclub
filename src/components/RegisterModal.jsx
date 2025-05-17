@@ -116,7 +116,7 @@ export default function RegisterModal({ open, onClose, eventName }) {
             animate={{ y: 0, opacity: 1 }}
             exit={{ y: "100%", opacity: 0 }}
             transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
-            className={`w-full max-w-md sm:max-w-lg bg-white rounded-t-2xl p-6 pt-10 shadow-2xl relative text-[#004018] ${
+            className={`w-full max-w-md sm:max-w-lg bg-white rounded-2xl p-6 pt-10 shadow-2xl mb-4 relative text-[#004018] ${
               shake ? "animate-shake" : ""
             }`}
           >
