@@ -4,15 +4,19 @@ import About from "./pages/About";
 import Events from "./pages/Events";
 import Shop from "./pages/Shop";
 import Contact from "./pages/Contact";
-import Navbar from "./components/Navbar"; // ⬅️ добавили
+import Navbar from "./components/Navbar";
+import Footer from "./components/Footer";
+import ScrollToTopButton from "./components/ScrollToTopButton";
 
 export default function App() {
   return (
     <Router>
-      <div className="min-h-screen bg-[#F8F0DE] text-[#004018] font-sans">
-        <Navbar /> {/* ⬅️ навбар для всех страниц */}
+      <div className="min-h-screen flex flex-col bg-[#F8F0DE] text-[#004018] font-sans">
+        {/* Навигация */}
+        <Navbar />
 
-        <main className="p-0">
+        {/* Контент, растягивающийся на всю оставшуюся высоту */}
+        <main className="flex-grow">
           <Routes>
             <Route path="/" element={<Home />} />
             <Route path="/about" element={<About />} />
@@ -21,6 +25,10 @@ export default function App() {
             <Route path="/contact" element={<Contact />} />
           </Routes>
         </main>
+
+        {/* Футер всегда внизу */}
+        <Footer />
+        <ScrollToTopButton />
       </div>
     </Router>
   );
