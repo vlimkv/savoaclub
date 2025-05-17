@@ -18,15 +18,15 @@ export default function Navbar() {
 
   return (
     <>
-      {/* Apple-inspired top info bar */}
-      <motion.div
-        initial={{ opacity: 0, y: -5 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5 }}
-        className="w-full bg-[#F8F0DE] text-[#004018] text-center text-[13px] md:text-sm font-light tracking-tight py-1 border-b border-[#004018]/10"
-      >
-        <span className="italic">Место, где энергия, забота и вдохновение соединяются.</span>
-      </motion.div>
+      {/* Elegant top info bar */}
+      <div className="w-full bg-[#F8F0DE] border-b border-[#004018]/10">
+        <div className="max-w-6xl mx-auto px-4 py-2">
+          <p className="text-center text-sm text-[#004018] font-light tracking-tight">
+            <span className="block sm:inline">Место, где</span>{" "}
+            <span className="italic">энергия</span>, <span className="italic">забота</span> и <span className="italic">вдохновение</span> соединяются.
+          </p>
+        </div>
+      </div>
 
       <nav className="w-full bg-[#F8F0DE] border-b border-[#004018]/20 sticky top-0 z-50">
         <div className="max-w-6xl mx-auto px-4 py-4 relative flex items-center justify-between">
@@ -43,8 +43,10 @@ export default function Navbar() {
               <Link
                 key={path}
                 to={path}
-                className={`relative transition hover:underline ${
-                    location.pathname === path ? "font-semibold underline underline-offset-4" : ""
+                className={`relative transition hover:opacity-80 ${
+                  location.pathname === path
+                    ? "font-semibold after:absolute after:bottom-0 after:left-1/4 after:w-1/2 after:h-[1px] after:bg-[#004018]/40 after:rounded-full after:content-['']"
+                    : ""
                 }`}
               >
                 {label}
