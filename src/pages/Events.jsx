@@ -30,7 +30,7 @@ export default function Events() {
       ],
       price: "15 000 ₸",
       image: rooftopImage,
-      isSoldOut: false,
+      isSoldOut: true,
     },
   ];
 
