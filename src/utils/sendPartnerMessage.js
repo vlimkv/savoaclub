@@ -8,7 +8,7 @@ export async function sendPartnerMessage({ name, message }) {
 👤 *Имя/Бренд:* ${name}
 💬 *Сообщение:* ${message}
 🕒 ${new Date().toLocaleString("ru-RU")}
-  `;
+`;
 
   const res = await fetch(`https://api.telegram.org/bot${TOKEN}/sendMessage`, {
     method: "POST",

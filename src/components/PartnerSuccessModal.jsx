@@ -1,8 +1,7 @@
-// src/components/PartnerSuccessModal.jsx
 import { motion, AnimatePresence } from "framer-motion";
 import { useEffect, useRef } from "react";
 
-export default function PartnerSuccessModal({ show, onClose }) {
+export default function PartnerSuccessModal({ show, onClose, already }) {
   const progressRef = useRef(null);
 
   useEffect(() => {
@@ -35,7 +34,7 @@ export default function PartnerSuccessModal({ show, onClose }) {
             initial={{ y: "100%", opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
             exit={{ y: "100%", opacity: 0 }}
-            transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
+            transition={{ duration: 0.4 }}
             className="bg-white w-full max-w-md sm:max-w-lg rounded-2xl shadow-2xl p-6 pt-10 mb-4 text-center text-[#004018]"
           >
             <div className="w-16 h-16 mb-4 mx-auto bg-green-100 rounded-full flex items-center justify-center shadow-md">
@@ -47,10 +46,13 @@ export default function PartnerSuccessModal({ show, onClose }) {
             </div>
 
             <h2 className="text-xl sm:text-2xl font-semibold mb-2">
-              Спасибо за заявку!
+              {already ? "Вы уже отправляли заявку" : "Спасибо за обращение!"}
             </h2>
+
             <p className="text-sm sm:text-base text-[#004018]/80 leading-relaxed mb-5">
-              Мы свяжемся с вами в ближайшее время. Или напишите нам напрямую:
+              {already
+                ? "Если хотите внести изменения — напишите нам напрямую:"
+                : "Мы скоро с вами свяжемся. Или напишите сразу:"}
             </p>
 
             <a
