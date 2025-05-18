@@ -10,6 +10,7 @@ export default {
         inter: ['Inter', 'sans-serif'],
       },
       animation: {
+        'pulse-slow': 'pulse 3s ease-in-out infinite',
         shake: 'shake 0.4s ease-in-out',
       },
       keyframes: {
