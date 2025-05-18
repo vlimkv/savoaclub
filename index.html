@@ -11,21 +11,20 @@
     <!-- SEO -->
     <title>SAVOA — женское wellness-сообщество в Астане</title>
     <meta name="description" content="SAVOA — женский wellness-бренд и сообщество в Астане. Закрытые пилатес-ивенты, цветочный бар, матча, брендированные товары и атмосфера заботы. Присоединяйся!" />
-    <meta name="keywords" content="SAVOA, пилатес Астана, wellness Астана, женское сообщество, пилатес-ивенты, матча, цветы, SAVOA Club, SAVOA Kazakhstan" />
-    <meta name="author" content="SAVOA Team" />
+    <meta name="keywords" content="SAVOA, пилатес Астана, wellness Астана, женское сообщество, pilates events, SAVOA Club, SAVOA Kazakhstan, матча, цветы" />
+    <meta name="author" content="SAVOA Club" />
+    <meta name="robots" content="index, follow" />
+
+    <!-- Canonical -->
+    <link rel="canonical" href="https://savoa.kz/" />
 
     <!-- Open Graph для соцсетей -->
     <meta property="og:title" content="SAVOA — женское wellness-сообщество в Астане" />
-    <meta property="og:description" content="Закрытые пилатес-ивенты, цветы, матча, уют и бренд SAVOA. Узнай больше и присоединяйся к комьюнити!" />
+    <meta property="og:description" content="Закрытые пилатес-ивенты, матча, цветы, эстетика и бренд SAVOA. Присоединяйся к комьюнити!" />
     <meta property="og:image" content="https://savoa.kz/og-image.jpg" />
-    <meta property="og:url" content="https://savoa.kz" />
+    <meta property="og:url" content="https://savoa.kz/" />
     <meta property="og:type" content="website" />
-
-    <!-- Twitter Card -->
-    <meta name="twitter:card" content="summary_large_image" />
-    <meta name="twitter:title" content="SAVOA — wellness в Астане" />
-    <meta name="twitter:description" content="Пилатес, цветы, матча и женская энергия в одном месте — SAVOA." />
-    <meta name="twitter:image" content="https://savoa.kz/og-image.jpg" />
+    <meta property="og:site_name" content="SAVOA" />
 
     <!-- Favicon -->
     <link rel="icon" type="image/x-icon" href="/favicon.ico" />
@@ -33,10 +32,18 @@
 
     <!-- Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@400;600&display=swap" rel="stylesheet" />
-    </head>
+
+    <!-- Manifest (если будет PWA) -->
+    <link rel="manifest" href="/manifest.json" />
+  </head>
 
   <body>
     <div id="root"></div>
     <script type="module" src="/src/main.jsx"></script>
+    <script>
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('/service-worker.js').catch(() => {});
+        }
+    </script>
   </body>
 </html>
