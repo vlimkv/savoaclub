@@ -1,6 +1,6 @@
 export async function sendTelegramMessage({ name, email, phone, eventName }) {
-  const TOKEN = "7831239921:AAG6-CSuxDIBBVk2dhz_fKcOSUyuNmeefE0";
-  const CHAT_ID = "7042937865";
+  const TOKEN = import.meta.env.VITE_TELEGRAM_TOKEN;
+  const CHAT_ID = import.meta.env.VITE_TELEGRAM_CHAT_ID;
 
   const message = `
 📩 *Новая заявка на ивент*
