@@ -9,12 +9,12 @@
   "lang": "ru",
   "icons": [
     {
-      "src": "/favicon.ico",
+      "src": "/og-image.jpg",
       "sizes": "192x192",
       "type": "image/png"
     },
     {
-      "src": "/favicon.ico",
+      "src": "/og-image.jpg",
       "sizes": "512x512",
       "type": "image/png"
     }
