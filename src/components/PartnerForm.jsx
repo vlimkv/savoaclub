@@ -1,4 +1,3 @@
-
 import { useEffect, useRef, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import Cookies from "js-cookie";
