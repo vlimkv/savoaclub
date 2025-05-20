@@ -2,9 +2,11 @@ import { useEffect, useState, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { sendTelegramMessage } from "../utils/sendTelegramMessage";
 import Cookies from "js-cookie";
+import { supabase } from "../utils/supabaseClient";
 
-export default function RegisterModal({ open, onClose, eventName }) {
-  const [form, setForm] = useState({ name: "", email: "", phone: "" });
+export default function RegisterModal({ open, onClose, eventName, eventId }) {
+  const [isSending, setIsSending] = useState(false);
+  const [form, setForm] = useState({ name: "", age: 25, phone: "" });
   const [errors, setErrors] = useState({});
   const [submitted, setSubmitted] = useState(false);
   const [shake, setShake] = useState(false);
@@ -12,7 +14,6 @@ export default function RegisterModal({ open, onClose, eventName }) {
   const progressRef = useRef(null);
   const nameInputRef = useRef(null);
 
-  // Проверка на повторную заявку при открытии
   useEffect(() => {
     if (open) {
       const cookie = Cookies.get("savoa_submitted");
@@ -57,33 +58,55 @@ export default function RegisterModal({ open, onClose, eventName }) {
   const validate = () => {
     const newErrors = {};
     if (!form.name.trim()) newErrors.name = "Введите имя";
-    if (!form.email.match(/^[^\s@]+@[^\s@]+\.[^\s@]+$/))
-      newErrors.email = "Введите корректный email";
+    if (!form.age || isNaN(form.age) || +form.age < 12)
+      newErrors.age = "Выберите возраст от 12 лет";
     if (!form.phone.match(/^(\+7|8)?7\d{9}$/))
-      newErrors.phone = "Введите корректный номер (например, 87001234567)";
+      newErrors.phone = "Введите корректный номер (например, +77001234567)";
     return newErrors;
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (isSending) return;
+
+    setIsSending(true);
     const newErrors = validate();
+
     if (Object.keys(newErrors).length > 0) {
       setErrors(newErrors);
       setShake(true);
       if (navigator.vibrate) navigator.vibrate(200);
       setTimeout(() => setShake(false), 400);
+      setIsSending(false);
       return;
     }
 
     try {
       await sendTelegramMessage({ ...form, eventName });
+
+      const { error } = await supabase.from("participants").insert([
+        {
+          name: form.name,
+          phone: form.phone,
+          age: form.age,
+          event_id: eventId, 
+          status: "pending",    
+        },
+      ]);
+
+      if (error) throw error;
+
       Cookies.set("savoa_submitted", "true", { expires: 30 });
       setSubmitted(true);
-      setForm({ name: "", email: "", phone: "" });
+      setForm({ name: "", age: 25, phone: "" });
+
       const audio = new Audio("/success.mp3");
       audio.play();
-    } catch {
-      alert("Ошибка отправки. Попробуйте позже.");
+    } catch (err) {
+      console.error("❌ Ошибка:", err);
+      alert("Ошибка при отправке заявки. Пожалуйста, попробуйте позже.");
+    } finally {
+      setIsSending(false); 
     }
   };
 
@@ -213,16 +236,18 @@ export default function RegisterModal({ open, onClose, eventName }) {
                   />
                   {errors.name && <p className="text-xs text-red-500">{errors.name}</p>}
 
+                  <div className="text-sm text-[#004018]/80 mb-1">
+                    Возраст: <span className="font-semibold">{form.age} лет</span>
+                  </div>
                   <input
-                    type="email"
-                    placeholder="Email"
-                    value={form.email}
-                    onChange={(e) => handleChange("email", e.target.value)}
-                    className={`w-full px-4 py-2 border rounded-md focus:ring-2 focus:ring-[#004018]/20 ${
-                      errors.email ? "border-red-400" : "border-[#ccc]"
-                    }`}
+                    type="range"
+                    min="12"
+                    max="70"
+                    value={form.age}
+                    onChange={(e) => handleChange("age", e.target.value)}
+                    className="w-full accent-[#004018]"
                   />
-                  {errors.email && <p className="text-xs text-red-500">{errors.email}</p>}
+                  {errors.age && <p className="text-xs text-red-500">{errors.age}</p>}
 
                   <input
                     type="tel"
@@ -237,7 +262,8 @@ export default function RegisterModal({ open, onClose, eventName }) {
 
                   <button
                     type="submit"
-                    className="w-full py-2 bg-[#004018] text-white rounded-full hover:bg-[#003015] transition font-medium"
+                    disabled={isSending}
+                    className="w-full py-2 bg-[#004018] text-white rounded-full hover:bg-[#003015] transition font-medium disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     Отправить заявку
                   </button>

@@ -1,4 +1,4 @@
-export async function sendTelegramMessage({ name, email, phone, eventName }) {
+export async function sendTelegramMessage({ name, age, phone, eventName }) {
   const TOKEN = import.meta.env.VITE_TELEGRAM_TOKEN;
   const CHAT_ID = import.meta.env.VITE_TELEGRAM_CHAT_ID;
 
@@ -7,7 +7,7 @@ export async function sendTelegramMessage({ name, email, phone, eventName }) {
 
 🧘 *Ивент:* ${eventName}
 👤 *Имя:* ${name}
-📧 *Email:* ${email}
+📧 *Возраст:* ${age} лет
 📱 *Телефон:* ${phone}
 🕒 *Время:* ${new Date().toLocaleString("ru-RU")}
 `;
