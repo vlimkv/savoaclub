@@ -2,10 +2,10 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useState, useEffect, useRef } from "react";
 
 const eventMedia = [
-  { type: "video", src: "/media/IMG_7967.MOV", alt: "Pilates Video" },
-  { type: "video", src: "/media/IMG_8040.MOV", alt: "Pilates Video" },
-  { type: "video", src: "/media/IMG_7955.MOV", alt: "Pilates Video" },
-  { type: "video", src: "/media/IMG_8146.MOV", alt: "Pilates Video" },
+  { type: "video", src: "/media/IMG_7967.mp4", alt: "Pilates Video" },
+  { type: "video", src: "/media/IMG_8040.mp4", alt: "Pilates Video" },
+  { type: "video", src: "/media/IMG_7955.mp4", alt: "Pilates Video" },
+  { type: "video", src: "/media/IMG_8146.mp4", alt: "Pilates Video" },
 ];
 
 const partners = [
