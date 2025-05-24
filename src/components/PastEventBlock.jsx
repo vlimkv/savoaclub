@@ -205,6 +205,7 @@ export default function PastEventBlock() {
               muted
               loop={false}
               playsInline
+              preload="auto"
               onEnded={handleVideoEnd}
             />
           )}
@@ -256,30 +257,39 @@ export default function PastEventBlock() {
     </div>
     {/* Партнёры — Apple style */}
     <div className="w-full flex justify-center items-center mt-2">
-  <div className="grid grid-cols-3 gap-x-5 sm:gap-x-12 w-full max-w-xs sm:max-w-md">
-    {partners.map((p) => (
-      <img
-        key={p.alt}
-        src={p.src}
-        alt={p.alt}
-        className="
-          h-10 sm:h-14 w-full object-contain
-          transition-all
-        "
-        style={{
-          minWidth: 0,           // предотвращает переполнение
-          maxHeight: "56px",     // одинаковая высота (sm: 56px)
-          filter: "grayscale(0.08) brightness(0.97)",
-        }}
-      />
-    ))}
+      <div className="grid grid-cols-3 gap-x-5 sm:gap-x-12 w-full max-w-xs sm:max-w-md">
+        {partners.map((p) => (
+          <img
+            key={p.alt}
+            src={p.src}
+            alt={p.alt}
+            className="
+              h-10 sm:h-14 w-full object-contain
+              transition-all
+            "
+            style={{
+              minWidth: 0,           // предотвращает переполнение
+              maxHeight: "56px",     // одинаковая высота (sm: 56px)
+              filter: "grayscale(0.08) brightness(0.97)",
+            }}
+          />
+        ))}
+      </div>
+    </div>
   </div>
-</div>
-
-  </div>
-
 </motion.div>
 
+      {eventMedia.map((m, idx) => (
+        idx !== mediaIdx && m.type === "video" ? (
+          <video
+            key={m.src}
+            src={m.src}
+            preload="auto"
+            muted
+            style={{ display: "none" }}
+          />
+        ) : null
+      ))}
     </section>
   );
 }
