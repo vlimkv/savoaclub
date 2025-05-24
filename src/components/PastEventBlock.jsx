@@ -1,17 +1,25 @@
 import { motion, AnimatePresence } from "framer-motion";
 import { useState, useEffect, useRef } from "react";
+import imgCve from "src/assets/partners/cve.svg";
+import imgJasyl from "src/assets/partners/jasylcoffee.png";
+import imgSheraton from "src/assets/partners/sheraton.png";
+
+import vid1 from "src/assets/media/IMG_7967.MOV";
+import vid2 from "src/assets/media/IMG_8040.MOV";
+import vid3 from "src/assets/media/IMG_7955.MOV";
+import vid4 from "src/assets/media/IMG_8146.MOV";
 
 const eventMedia = [
-  { type: "video", src: "src/assets/media/IMG_7967.MOV", alt: "Pilates Video" },
-  { type: "video", src: "src/assets/media/IMG_8040.MOV", alt: "Pilates Video" },
-  { type: "video", src: "src/assets/media/IMG_7955.MOV", alt: "Pilates Video" },
-  { type: "video", src: "src/assets/media/IMG_8146.MOV", alt: "Pilates Video" },
+  { type: "video", src: vid1, alt: "Pilates Video" },
+  { type: "video", src: vid2, alt: "Pilates Video" },
+  { type: "video", src: vid3, alt: "Pilates Video" },
+  { type: "video", src: vid4, alt: "Pilates Video" },
 ];
 
 const partners = [
-  { src: "src/assets/partners/cve.svg", alt: "CVE" },
-  { src: "src/assets/partners/jasylcoffee.png", alt: "Jasyl Coffee" },
-  { src: "src/assets/partners/sheraton.png", alt: "Sheraton" },
+  { src: imgCve, alt: "CVE" },
+  { src: imgJasyl, alt: "Jasyl Coffee" },
+  { src: imgSheraton, alt: "Sheraton" },
 ];
 
 const SLIDE_DURATION = 3500; 
