@@ -279,17 +279,22 @@ export default function PastEventBlock() {
   </div>
 </motion.div>
 
-      {eventMedia.map((m, idx) => (
-        idx !== mediaIdx && m.type === "video" ? (
-          <video
-            key={m.src}
-            src={m.src}
-            preload="auto"
-            muted
-            style={{ display: "none" }}
-          />
-        ) : null
-      ))}
+      {[mediaIdx - 1, mediaIdx + 1].map(i => {
+        const idx = (i + eventMedia.length) % eventMedia.length;
+        const m = eventMedia[idx];
+        if (m.type === "video") {
+            return (
+            <video
+                key={m.src}
+                src={m.src}
+                preload="auto"
+                muted
+                style={{ display: "none" }}
+            />
+            );
+        }
+        return null;
+        })}
     </section>
   );
 }
