@@ -4,7 +4,7 @@ import Cookies from "js-cookie";
 import PartnerSuccessModal from "./PartnerSuccessModal";
 
 export default function PartnerForm() {
-  const [form, setForm] = useState({ name: "", message: "" });
+  const [form, setForm] = useState({ name: "", contacts: "", message: "" });
   const [errors, setErrors] = useState({});
   const [sent, setSent] = useState(false);
   const [shake, setShake] = useState(false);
@@ -21,6 +21,7 @@ export default function PartnerForm() {
   const validate = () => {
     const newErrors = {};
     if (!form.name.trim()) newErrors.name = "Введите имя или бренд";
+    if (!form.contacts.trim()) newErrors.contacts = "Укажите контакт для связи";
     if (!form.message.trim()) newErrors.message = "Введите сообщение";
     return newErrors;
   };
@@ -45,15 +46,15 @@ export default function PartnerForm() {
     }
 
     try {
-      const botToken = import.meta.env.VITE_TELEGRAM_BOT;
-      const chatId = import.meta.env.VITE_TELEGRAM_CHAT;
+      const botToken = import.meta.env.VITE_TELEGRAM_TOKEN;
+      const chatId = import.meta.env.VITE_TELEGRAM_CHAT_ID;
 
       const res = await fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           chat_id: chatId,
-          text: `🤝 *Заявка на сотрудничество*\n\n👤 *Имя/Бренд:* ${form.name}\n💬 *Сообщение:* ${form.message}\n🕒 ${new Date().toLocaleString("ru-RU")}`,
+          text: `🤝 *Заявка на сотрудничество*\n\n👤 *Имя/Бренд:* ${form.name}\n📞 *Контакты:* ${form.contacts}\n💬 *Сообщение:* ${form.message}\n🕒 ${new Date().toLocaleString("ru-RU")}`,
           parse_mode: "Markdown",
         }),
       });
@@ -65,7 +66,7 @@ export default function PartnerForm() {
       audio.play();
       setSent(true);
       setShowModal(true);
-      setForm({ name: "", message: "" });
+      setForm({ name: "", contacts: "", message: "" });
     } catch (err) {
       console.error("Ошибка при отправке:", err);
     }
@@ -102,7 +103,14 @@ export default function PartnerForm() {
           className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-[#004018]/30 \${errors.name ? "border-red-400" : "border-[#ccc]"}`}
         />
         {errors.name && <p className="text-sm text-red-500">{errors.name}</p>}
-
+        <input
+          type="text"
+          placeholder="Контакты (телефон, e-mail, Instagram)"
+          value={form.contacts}
+          onChange={e => handleChange("contacts", e.target.value)}
+          className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-[#004018]/30 ${errors.contacts ? "border-red-400" : "border-[#ccc]"}`}
+        />
+        {errors.contacts && <p className="text-sm text-red-500">{errors.contacts}</p>}
         <textarea
           placeholder="Расскажите о предложении или партнёрстве"
           value={form.message}

@@ -2,6 +2,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Link } from "react-router-dom";
 import logo from "../assets/logo.svg";
 import background from "../assets/home.jpg";
+import PastEventBlock from "../components/PastEventBlock";
 
 export default function Home() {
   return (
@@ -54,6 +55,8 @@ export default function Home() {
 </motion.div>
 
       </div>
+      <PastEventBlock />
     </AnimatePresence>
+    
   );
 }

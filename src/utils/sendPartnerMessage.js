@@ -1,6 +1,6 @@
 export async function sendPartnerMessage({ name, message }) {
-  const TOKEN = import.meta.env.VITE_TELEGRAM_BOT;
-  const CHAT_ID = import.meta.env.VITE_TELEGRAM_CHAT;
+  const TOKEN = import.meta.env.VITE_TELEGRAM_TOKEN;
+  const CHAT_ID = import.meta.env.VITE_TELEGRAM_CHAT_ID;
 
   const text = `
 🤝 *Заявка на сотрудничество*
