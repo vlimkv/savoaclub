@@ -15,6 +15,7 @@ const partners = [
 ];
 
 const SLIDE_DURATION = 3500; 
+const FAST_TRANSITION = 0.17;
 
 export default function PastEventBlock() {
   const [mediaIdx, setMediaIdx] = useState(0);
@@ -99,24 +100,24 @@ export default function PastEventBlock() {
 
   const variants = {
     enter: (direction) => ({
-      x: direction > 0 ? 300 : -300,
-      opacity: 0,
-      scale: 0.97,
-      position: "absolute"
+        x: direction > 0 ? 160 : -160,
+        opacity: 0,
+        scale: 0.98,
+        position: "absolute"
     }),
     center: {
-      x: 0,
-      opacity: 1,
-      scale: 1,
-      position: "relative",
-      transition: { duration: 0.34, ease: "easeInOut" }
+        x: 0,
+        opacity: 1,
+        scale: 1,
+        position: "relative",
+        transition: { duration: FAST_TRANSITION, ease: [0.43, 0.13, 0.23, 0.96] }
     },
     exit: (direction) => ({
-      x: direction < 0 ? 300 : -300,
-      opacity: 0,
-      scale: 0.97,
-      position: "absolute",
-      transition: { duration: 0.34, ease: "easeInOut" }
+        x: direction < 0 ? 160 : -160,
+        opacity: 0,
+        scale: 0.98,
+        position: "absolute",
+        transition: { duration: FAST_TRANSITION, ease: [0.43, 0.13, 0.23, 0.96] }
     })
   };
 
@@ -204,6 +205,7 @@ export default function PastEventBlock() {
               muted
               loop={false}
               playsInline
+              preload="auto"
               onEnded={handleVideoEnd}
             />
           )}
@@ -255,30 +257,40 @@ export default function PastEventBlock() {
     </div>
     {/* Партнёры — Apple style */}
     <div className="w-full flex justify-center items-center mt-2">
-  <div className="grid grid-cols-3 gap-x-5 sm:gap-x-12 w-full max-w-xs sm:max-w-md">
-    {partners.map((p) => (
-      <img
-        key={p.alt}
-        src={p.src}
-        alt={p.alt}
-        className="
-          h-10 sm:h-14 w-full object-contain
-          transition-all
-        "
-        style={{
-          minWidth: 0,           // предотвращает переполнение
-          maxHeight: "56px",     // одинаковая высота (sm: 56px)
-          filter: "grayscale(0.08) brightness(0.97)",
-        }}
-      />
-    ))}
+      <div className="grid grid-cols-3 gap-x-5 sm:gap-x-12 w-full max-w-xs sm:max-w-md">
+        {partners.map((p) => (
+          <img
+            key={p.alt}
+            src={p.src}
+            alt={p.alt}
+            className="
+              h-10 sm:h-14 w-full object-contain
+              transition-all
+            "
+            style={{
+              minWidth: 0,           // предотвращает переполнение
+              maxHeight: "56px",     // одинаковая высота (sm: 56px)
+              filter: "grayscale(0.08) brightness(0.97)",
+            }}
+          />
+        ))}
+      </div>
+    </div>
   </div>
-</div>
-
-  </div>
-
 </motion.div>
 
+      {/* Хак для прогрузки всех видео заранее */}
+      {eventMedia.map((m, idx) => (
+        idx !== mediaIdx && m.type === "video" ? (
+          <video
+            key={m.src}
+            src={m.src}
+            preload="auto"
+            muted
+            style={{ display: "none" }}
+          />
+        ) : null
+      ))}
     </section>
   );
 }
