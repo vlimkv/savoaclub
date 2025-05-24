@@ -17,26 +17,22 @@ export default function RegisterModal({ open, onClose, eventName, eventId }) {
   useEffect(() => {
     if (open) {
       const cookie = Cookies.get("savoa_submitted");
-      if (cookie) setAlreadySubmitted(true);
-      else setAlreadySubmitted(false);
+      setAlreadySubmitted(!!cookie);
     }
   }, [open]);
 
-  // Auto-focus
   useEffect(() => {
     if (open && nameInputRef.current && !alreadySubmitted && !submitted) {
       setTimeout(() => nameInputRef.current.focus(), 150);
     }
   }, [open, alreadySubmitted, submitted]);
 
-  // Escape
   useEffect(() => {
     const handleEscape = (e) => e.key === "Escape" && onClose();
     document.addEventListener("keydown", handleEscape);
     return () => document.removeEventListener("keydown", handleEscape);
   }, [onClose]);
 
-  // Автозакрытие
   useEffect(() => {
     if (submitted) {
       let progress = 0;
@@ -58,8 +54,8 @@ export default function RegisterModal({ open, onClose, eventName, eventId }) {
   const validate = () => {
     const newErrors = {};
     if (!form.name.trim()) newErrors.name = "Введите имя";
-    if (!form.age || isNaN(form.age) || +form.age < 12)
-      newErrors.age = "Выберите возраст от 12 лет";
+    if (!form.age || isNaN(form.age) || +form.age < 16)
+      newErrors.age = "Выберите возраст от 16 лет";
     if (!form.phone.match(/^(\+7|8)?7\d{9}$/))
       newErrors.phone = "Введите корректный номер (например, +77001234567)";
     return newErrors;
@@ -89,8 +85,8 @@ export default function RegisterModal({ open, onClose, eventName, eventId }) {
           name: form.name,
           phone: form.phone,
           age: form.age,
-          event_id: eventId, 
-          status: "pending",    
+          event_id: eventId,
+          status: "pending",
         },
       ]);
 
@@ -106,7 +102,7 @@ export default function RegisterModal({ open, onClose, eventName, eventId }) {
       console.error("❌ Ошибка:", err);
       alert("Ошибка при отправке заявки. Пожалуйста, попробуйте позже.");
     } finally {
-      setIsSending(false); 
+      setIsSending(false);
     }
   };
 
@@ -241,12 +237,16 @@ export default function RegisterModal({ open, onClose, eventName, eventId }) {
                   </div>
                   <input
                     type="range"
-                    min="12"
-                    max="70"
+                    min="16"
+                    max="65"
                     value={form.age}
                     onChange={(e) => handleChange("age", e.target.value)}
                     className="w-full accent-[#004018]"
                   />
+                  <div className="flex justify-between text-xs text-[#004018]/60 mb-1">
+                    <span>16</span>
+                    <span>65</span>
+                  </div>
                   {errors.age && <p className="text-xs text-red-500">{errors.age}</p>}
 
                   <input
@@ -267,6 +267,23 @@ export default function RegisterModal({ open, onClose, eventName, eventId }) {
                   >
                     Отправить заявку
                   </button>
+                  <p className="mt-4 text-xs text-[#004018]/80 text-center leading-snug">
+                    Отправляя заявку, вы{" "}
+                    <a
+                      href="/offer"
+                      className="font-semibold text-[#004018] underline hover:text-[#a0815c] transition"
+                    >
+                      соглашаетесь с публичной офертой
+                    </a>
+                    {" "}и{" "}
+                    <a
+                      href="/privacy"
+                      className="font-semibold text-[#004018] underline hover:text-[#a0815c] transition"
+                    >
+                      политикой конфиденциальности
+                    </a>
+                    .
+                  </p>
                 </form>
               </>
             )}
