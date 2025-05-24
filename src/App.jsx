@@ -7,6 +7,8 @@ import Contact from "./pages/Contact";
 import Navbar from "./components/Navbar";
 import Footer from "./components/Footer";
 import ScrollToTopButton from "./components/ScrollToTopButton";
+import Privacy from './pages/Privacy';
+import Offer from './pages/Offer';
 
 export default function App() {
   return (
@@ -23,6 +25,8 @@ export default function App() {
             <Route path="/events" element={<Events />} />
             <Route path="/shop" element={<Shop />} />
             <Route path="/contact" element={<Contact />} />
+            <Route path="/privacy" element={<Privacy />} />
+            <Route path="/offer" element={<Offer />} />
           </Routes>
         </main>
 
