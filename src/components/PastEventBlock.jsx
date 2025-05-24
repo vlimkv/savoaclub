@@ -2,16 +2,16 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useState, useEffect, useRef } from "react";
 
 const eventMedia = [
-  { type: "video", src: "/media/IMG_7967.mp4", alt: "Pilates Video" },
-  { type: "video", src: "/media/IMG_8040.mp4", alt: "Pilates Video" },
-  { type: "video", src: "/media/IMG_7955.mp4", alt: "Pilates Video" },
-  { type: "video", src: "/media/IMG_8146.mp4", alt: "Pilates Video" },
+  { type: "video", src: "https://2coyyw5nsu1vqk8k.public.blob.vercel-storage.com/IMG_7967-uIDc0L5mzFdSUAmBwNwncU8qJflva7.mp4", alt: "Pilates Video" },
+  { type: "video", src: "https://2coyyw5nsu1vqk8k.public.blob.vercel-storage.com/IMG_8040-HiTk103yhILRgFZsO2l3qzVo0DJUAa.mp4", alt: "Pilates Video" },
+  { type: "video", src: "https://2coyyw5nsu1vqk8k.public.blob.vercel-storage.com/IMG_7955-RGVYPNglGRc63iQzAPuCeX0z8nM02k.mp4", alt: "Pilates Video" },
+  { type: "video", src: "https://2coyyw5nsu1vqk8k.public.blob.vercel-storage.com/IMG_8146-KqxBbNoc84nwZUXfKwHJu46ySl4Hl6.mp4", alt: "Pilates Video" },
 ];
 
 const partners = [
-  { src: "/partners/cve.svg", alt: "CVE" },
-  { src: "/partners/jasylcoffee.png", alt: "Jasyl Coffee" },
-  { src: "/partners/sheraton.png", alt: "Sheraton" },
+  { src: "https://2coyyw5nsu1vqk8k.public.blob.vercel-storage.com/partners/cve-04mk6B987c21iNt7HEWwqFju8Ht0gi.svg", alt: "CVE" },
+  { src: "https://2coyyw5nsu1vqk8k.public.blob.vercel-storage.com/partners/jasylcoffee-7Qj2BlhIElhLbZiIe9rMxIjC8JyyeD.png", alt: "Jasyl Coffee" },
+  { src: "https://2coyyw5nsu1vqk8k.public.blob.vercel-storage.com/partners/%D0%94%D0%B8%D0%B7%D0%B0%D0%B9%D0%BD%20%D0%B1%D0%B5%D0%B7%20%D0%BD%D0%B0%D0%B7%D0%B2%D0%B0%D0%BD%D0%B8%D1%8F-eKXWzUuksqNr3TOMATfg5nHSeaeuM2.png", alt: "Sheraton" },
 ];
 
 const SLIDE_DURATION = 3500; 
@@ -205,7 +205,6 @@ export default function PastEventBlock() {
               muted
               loop={false}
               playsInline
-              preload="auto"
               onEnded={handleVideoEnd}
             />
           )}
@@ -257,40 +256,30 @@ export default function PastEventBlock() {
     </div>
     {/* Партнёры — Apple style */}
     <div className="w-full flex justify-center items-center mt-2">
-      <div className="grid grid-cols-3 gap-x-5 sm:gap-x-12 w-full max-w-xs sm:max-w-md">
-        {partners.map((p) => (
-          <img
-            key={p.alt}
-            src={p.src}
-            alt={p.alt}
-            className="
-              h-10 sm:h-14 w-full object-contain
-              transition-all
-            "
-            style={{
-              minWidth: 0,           // предотвращает переполнение
-              maxHeight: "56px",     // одинаковая высота (sm: 56px)
-              filter: "grayscale(0.08) brightness(0.97)",
-            }}
-          />
-        ))}
-      </div>
-    </div>
+  <div className="grid grid-cols-3 gap-x-5 sm:gap-x-12 w-full max-w-xs sm:max-w-md">
+    {partners.map((p) => (
+      <img
+        key={p.alt}
+        src={p.src}
+        alt={p.alt}
+        className="
+          h-10 sm:h-14 w-full object-contain
+          transition-all
+        "
+        style={{
+          minWidth: 0,           // предотвращает переполнение
+          maxHeight: "56px",     // одинаковая высота (sm: 56px)
+          filter: "grayscale(0.08) brightness(0.97)",
+        }}
+      />
+    ))}
   </div>
+</div>
+
+  </div>
+
 </motion.div>
 
-      {/* Хак для прогрузки всех видео заранее */}
-      {eventMedia.map((m, idx) => (
-        idx !== mediaIdx && m.type === "video" ? (
-          <video
-            key={m.src}
-            src={m.src}
-            preload="auto"
-            muted
-            style={{ display: "none" }}
-          />
-        ) : null
-      ))}
     </section>
   );
 }
