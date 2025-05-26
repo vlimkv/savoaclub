@@ -16,7 +16,7 @@ export default function RegisterModal({ open, onClose, eventName, eventId }) {
 
   useEffect(() => {
     if (open) {
-      const cookie = Cookies.get("savoa_submitted");
+      const cookie = Cookies.get(`savoa_submitted_${eventId}`);
       setAlreadySubmitted(!!cookie);
     }
   }, [open]);
@@ -92,7 +92,7 @@ export default function RegisterModal({ open, onClose, eventName, eventId }) {
 
       if (error) throw error;
 
-      Cookies.set("savoa_submitted", "true", { expires: 30 });
+      Cookies.set(`savoa_submitted_${eventId}`, "true", { expires: 30 });
       setSubmitted(true);
       setForm({ name: "", age: 25, phone: "" });
 

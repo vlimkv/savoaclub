@@ -16,7 +16,7 @@ export default function Events() {
       const { data, error } = await supabase
         .from("events")
         .select("*")
-        .order("date", { ascending: true });
+        .order("date", { ascending: false });
 
       if (error) console.error(error);
       else setEvents(data);
@@ -26,7 +26,7 @@ export default function Events() {
   }, []);
 
   const handleOpenModal = (event) => {
-    const submittedBefore = Cookies.get("savoa_submitted");
+    const submittedBefore = Cookies.get(`savoa_submitted_${event.id}`);
     setSelectedEvent(event);
     setModalMode(submittedBefore ? "info" : "form");
     setModalOpen(true);
