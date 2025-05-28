@@ -53,7 +53,7 @@ export default function RegisterModal({ open, onClose, eventName, eventId }) {
 
   const validate = () => {
     const newErrors = {};
-    if (!form.name.trim()) newErrors.name = "Введите имя";
+    if (!form.name.trim()) newErrors.name = "Введите фамилию и имя";
     if (!form.age || isNaN(form.age) || +form.age < 16)
       newErrors.age = "Выберите возраст от 16 лет";
     if (!form.phone.match(/^(\+7|8)?7\d{9}$/))
@@ -223,7 +223,7 @@ export default function RegisterModal({ open, onClose, eventName, eventId }) {
                   <input
                     ref={nameInputRef}
                     type="text"
-                    placeholder="Ваше имя"
+                    placeholder="Фамилия и имя"
                     value={form.name}
                     onChange={(e) => handleChange("name", e.target.value)}
                     className={`w-full px-4 py-2 border rounded-md focus:ring-2 focus:ring-[#004018]/20 ${
