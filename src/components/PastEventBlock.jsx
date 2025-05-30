@@ -1,18 +1,11 @@
 import { motion, AnimatePresence } from "framer-motion";
 import { useState, useEffect, useRef } from "react";
+import { supabase } from "../utils/supabaseClient";
 
-const eventMedia = [
-  { type: "video", src: "https://2coyyw5nsu1vqk8k.public.blob.vercel-storage.com/IMG_7967-uIDc0L5mzFdSUAmBwNwncU8qJflva7.mp4", alt: "Pilates Video" },
-  { type: "video", src: "https://2coyyw5nsu1vqk8k.public.blob.vercel-storage.com/IMG_8040-HiTk103yhILRgFZsO2l3qzVo0DJUAa.mp4", alt: "Pilates Video" },
-  { type: "video", src: "https://2coyyw5nsu1vqk8k.public.blob.vercel-storage.com/IMG_7955-RGVYPNglGRc63iQzAPuCeX0z8nM02k.mp4", alt: "Pilates Video" },
-  { type: "video", src: "https://2coyyw5nsu1vqk8k.public.blob.vercel-storage.com/IMG_8146-KqxBbNoc84nwZUXfKwHJu46ySl4Hl6.mp4", alt: "Pilates Video" },
-];
-
-const partners = [
-  { src: "https://2coyyw5nsu1vqk8k.public.blob.vercel-storage.com/partners/cve-04mk6B987c21iNt7HEWwqFju8Ht0gi.svg", alt: "CVE" },
-  { src: "https://2coyyw5nsu1vqk8k.public.blob.vercel-storage.com/partners/jasylcoffee-7Qj2BlhIElhLbZiIe9rMxIjC8JyyeD.png", alt: "Jasyl Coffee" },
-  { src: "https://2coyyw5nsu1vqk8k.public.blob.vercel-storage.com/partners/%D0%94%D0%B8%D0%B7%D0%B0%D0%B9%D0%BD%20%D0%B1%D0%B5%D0%B7%20%D0%BD%D0%B0%D0%B7%D0%B2%D0%B0%D0%BD%D0%B8%D1%8F-eKXWzUuksqNr3TOMATfg5nHSeaeuM2.png", alt: "Sheraton" },
-];
+function getMediaUrl(bucket, filename) {
+  const { data } = supabase.storage.from(bucket).getPublicUrl(filename);
+  return data?.publicUrl || "";
+}
 
 const SLIDE_DURATION = 3500; 
 const FAST_TRANSITION = 0.17;
@@ -22,6 +15,8 @@ export default function PastEventBlock() {
   const [direction, setDirection] = useState(0);
   const [isPaused, setIsPaused] = useState(false);
   const [progress, setProgress] = useState(0); 
+  const [eventMedia, setEventMedia] = useState([]);
+  const [partners, setPartners] = useState([]);
   const autoSwipeRef = useRef();
   const rafRef = useRef();
   const touchStartX = useRef(null);
@@ -29,26 +24,93 @@ export default function PastEventBlock() {
   const progressAtPause = useRef(0);
   const videoRef = useRef(null);
 
+  const getCurrentDuration = () => {
+    if (videoRef.current?.duration) return videoRef.current.duration * 1000;
+    return SLIDE_DURATION;
+  };
+
   useEffect(() => {
+    if (!eventMedia.length) return;
     setProgress(0);
     progressAtPause.current = 0;
     progressStartTime.current = performance.now();
-  }, [mediaIdx]);
+  }, [mediaIdx, eventMedia]);
+
+
+  useEffect(() => {
+    const fetchData = async () => {
+      // Найдём последний event_id, у которого есть медиа
+      const { data: mediaEvents } = await supabase
+        .from("event_media")
+        .select("event_id")
+        .order("created_at", { ascending: false });
+
+      const { data: partnerEvents } = await supabase
+        .from("event_partners")
+        .select("event_id")
+        .order("created_at", { ascending: false });
+
+      const ids = new Set();
+      mediaEvents?.forEach((m) => ids.add(m.event_id));
+      partnerEvents?.forEach((p) => ids.add(p.event_id));
+
+      const firstEventId = [...ids][0]; // берем первый найденный id
+
+      if (!firstEventId) return; // ничего нет — не отображаем
+
+      const { data: mediaData } = await supabase
+        .from("event_media")
+        .select("*")
+        .eq("event_id", firstEventId);
+
+      const { data: partnersData } = await supabase
+        .from("event_partners")
+        .select("*")
+        .eq("event_id", firstEventId);
+
+      const mappedMedia = (mediaData || []).map((m) => ({
+        ...m,
+        type: m.type || (m.filename?.toLowerCase().endsWith(".mp4") ? "video" : "image"),
+        src: getMediaUrl("event-media", m.filename),
+      }));
+
+
+      const mappedPartners = (partnersData || []).map((p) => ({
+        ...p,
+        src: getMediaUrl("event-partners", p.filename),
+      }));
+
+      setEventMedia(mappedMedia);
+      setPartners(mappedPartners);
+    };
+
+    fetchData();
+  }, []);
 
   useEffect(() => {
     if (autoSwipeRef.current) clearTimeout(autoSwipeRef.current);
     if (rafRef.current) cancelAnimationFrame(rafRef.current);
+    let currentDuration = SLIDE_DURATION;
+    if (videoRef.current && videoRef.current.duration) {
+      currentDuration = videoRef.current.duration * 1000;
+    }
+
 
     const animate = (now) => {
       if (isPaused) return;
       if (!progressStartTime.current) progressStartTime.current = now;
-      const elapsed = now - progressStartTime.current + progressAtPause.current * SLIDE_DURATION;
-      const nextProgress = Math.min(elapsed / SLIDE_DURATION, 1);
+      const currentDuration = getCurrentDuration();
+      const elapsed = now - progressStartTime.current + progressAtPause.current * currentDuration;
+      const nextProgress = Math.min(elapsed / currentDuration, 1);
+
       setProgress(nextProgress);
+      
 
       if (nextProgress >= 1) {
         setDirection(1);
-        setMediaIdx((prev) => (prev + 1) % eventMedia.length);
+        setMediaIdx((prev) =>
+          eventMedia.length > 0 ? (prev + 1) % eventMedia.length : 0
+        );
       } else {
         rafRef.current = requestAnimationFrame(animate);
       }
@@ -63,11 +125,21 @@ export default function PastEventBlock() {
     };
   }, [isPaused, mediaIdx]);
 
+  useEffect(() => {
+    if (!isPaused && videoRef.current && currentMedia.type === "video") {
+      videoRef.current.play().catch(() => {}); // иногда нужно catch
+    }
+  }, [mediaIdx]);
+
   const handlePause = () => {
     setIsPaused(true);
     progressAtPause.current = progress;
-    if (videoRef.current) videoRef.current.pause();
+    if (videoRef.current && !videoRef.current.ended) {
+      videoRef.current.pause();
+    }
+
   };
+
   const handleResume = () => {
     if (!isPaused) return;
     progressStartTime.current = performance.now();
@@ -94,8 +166,12 @@ export default function PastEventBlock() {
   };
 
   const handleVideoEnd = () => {
+    setIsPaused(false); // СНИМАЕМ ПАУЗУ
     setDirection(1);
-    setMediaIdx((mediaIdx + 1) % eventMedia.length);
+    setMediaIdx((prev) => (prev + 1) % eventMedia.length);
+    setProgress(0);
+    progressAtPause.current = 0;
+    progressStartTime.current = performance.now();
   };
 
   const variants = {
@@ -121,6 +197,9 @@ export default function PastEventBlock() {
     })
   };
 
+  if (!eventMedia.length || !eventMedia[mediaIdx]) return null;
+  const currentMedia = eventMedia[mediaIdx];
+
   return (
     <section className="w-full flex flex-col items-center py-12 sm:py-24 bg-transparent">
       <motion.div
@@ -136,7 +215,7 @@ export default function PastEventBlock() {
   <div className="relative w-full bg-[#f5f0e4] overflow-hidden">
     <div
       className="
-        h-[220px] xs:h-[290px] sm:h-[350px] md:h-[410px] w-full flex items-center justify-center select-none touch-pan-x overflow-hidden
+        relative h-[220px] xs:h-[290px] sm:h-[350px] md:h-[410px] w-full flex items-center justify-center select-none touch-pan-x overflow-hidden
       "
       onMouseDown={handlePause}
       onMouseUp={handleResume}
@@ -149,9 +228,9 @@ export default function PastEventBlock() {
       {/* Прогресс-бар */}
       <div className="absolute top-0 left-0 w-full z-30 pointer-events-none">
         <div className="w-full h-[2.5px] bg-[#f8f0de]/80 flex rounded-none">
-          {eventMedia.map((_, i) => (
+          {eventMedia?.map((_, i) => (
             <div
-              key={i}
+              key={eventMedia[i]?.id || `${eventMedia[i]?.filename}-${i}`}
               className="flex-1 relative"
               style={{ marginRight: i !== eventMedia.length - 1 ? 2 : 0 }}
             >
@@ -180,15 +259,15 @@ export default function PastEventBlock() {
       {/* Медиа */}
       <AnimatePresence custom={direction} initial={false} mode="wait">
         <motion.div
-          key={mediaIdx}
+          key={eventMedia[mediaIdx]?.id || mediaIdx}
           variants={variants}
           initial="enter"
           animate="center"
           exit="exit"
           custom={direction}
-          className="w-full h-full flex items-center justify-center"
+          className="object-cover w-full h-full max-h-full flex items-center justify-center"
         >
-          {eventMedia[mediaIdx].type === "image" ? (
+          {currentMedia.type === "image" ? (
             <img
               src={eventMedia[mediaIdx].src}
               alt={eventMedia[mediaIdx].alt}
@@ -223,9 +302,9 @@ export default function PastEventBlock() {
       />
       {/* Точки — z-50 всегда поверх */}
       <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2 z-50">
-        {eventMedia.map((_, i) => (
+        {eventMedia?.map((_, i) => (
           <button
-            key={i}
+            key={eventMedia[i]?.id || `${eventMedia[i]?.filename}-${i}`}
             className={`w-2 h-2 rounded-full border border-[#e8d5b7] ${i === mediaIdx ? "bg-[#004018]/90 scale-125 shadow" : "bg-[#ede4d4]"} transition-all`}
             onClick={() => {
               setDirection(i > mediaIdx ? 1 : -1);
@@ -258,11 +337,10 @@ export default function PastEventBlock() {
     {/* Партнёры — Apple style */}
     <div className="w-full flex justify-center items-center mt-2">
       <div className="grid grid-cols-3 gap-x-5 sm:gap-x-12 w-full max-w-xs sm:max-w-md">
-        {partners.map((p) => (
+        {partners?.map((p) => (
           <img
-            key={p.alt}
+            key={p.id || p.filename} alt={p.alt || "partner"}
             src={p.src}
-            alt={p.alt}
             className="
               h-10 sm:h-14 w-full object-contain
               transition-all
@@ -284,7 +362,7 @@ export default function PastEventBlock() {
     if (m.type === "video") {
         return (
         <video
-            key={m.src}
+            key={m.id || m.src}
             src={m.src}
             preload="auto"
             muted
