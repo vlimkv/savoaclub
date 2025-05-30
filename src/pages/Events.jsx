@@ -3,6 +3,12 @@ import { motion, AnimatePresence } from "framer-motion";
 import RegisterModal from "../components/RegisterModal";
 import Cookies from "js-cookie";
 import { supabase } from "../utils/supabaseClient";
+import dayjs from "dayjs";
+import customParseFormat from "dayjs/plugin/customParseFormat";
+import "dayjs/locale/ru";
+
+dayjs.extend(customParseFormat);
+dayjs.locale("ru");
 
 export default function Events() {
   const [modalOpen, setModalOpen] = useState(false);
@@ -15,15 +21,26 @@ export default function Events() {
     const fetchEvents = async () => {
       const { data, error } = await supabase
         .from("events")
-        .select("*")
-        .order("date", { ascending: false });
+        .select("*");
 
-      if (error) console.error(error);
-      else setEvents(data);
+      if (error) {
+        console.error(error);
+      } else {
+        const format = "D MMMM YYYY";
+        const sorted = [...data].sort((a, b) => {
+          const dateA = dayjs(a.date, format, true);
+          const dateB = dayjs(b.date, format, true);
+          if (!dateA.isValid() || !dateB.isValid()) return 0;
+          return dateB.valueOf() - dateA.valueOf();
+        });
+
+        setEvents(sorted);
+      }
     };
 
     fetchEvents();
   }, []);
+
 
   const handleOpenModal = (event) => {
     const submittedBefore = Cookies.get(`savoa_submitted_${event.id}`);
