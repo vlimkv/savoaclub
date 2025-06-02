@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { useCartContext } from "../context/CartContext";
 
 const AUTOCHANGE_INTERVAL = 6000;
@@ -10,8 +10,9 @@ function ProductCard({ product }) {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [modalIndex, setModalIndex] = useState(0);
   const [progress, setProgress] = useState(0);
+  const [showHint, setShowHint] = useState(true);
   const timerRef = useRef(null);
-  const containerRef = useRef(null);
+  const containerRef = useRef({ startX: 0, startY: 0, swipeX: 0, swipeY: 0 });
 
   const currentMedia = product.media[index];
   const isPng = currentMedia.type === "image" && currentMedia.src.endsWith(".png");
@@ -61,6 +62,19 @@ function ProductCard({ product }) {
     }
     return () => cancelAnimationFrame(timerRef.current);
   }, [modalIndex, isModalOpen]);
+
+  useEffect(() => {
+    const timeout = setTimeout(() => setShowHint(false), 2000);
+    return () => clearTimeout(timeout);
+  }, []);
+
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (e.key === "Escape") setIsModalOpen(false);
+    };
+    document.addEventListener("keydown", handleKeyDown);
+    return () => document.removeEventListener("keydown", handleKeyDown);
+  }, []);
 
   return (
     <>
@@ -151,52 +165,87 @@ function ProductCard({ product }) {
         </button>
       </motion.div>
 
-      {/* FULLSCREEN MODAL */}
-      {isModalOpen && (
-        <div
-          className="fixed inset-0 z-50 bg-black flex flex-col items-center justify-center"
-          onTouchStart={handleTouchStart}
-          onTouchMove={handleTouchMove}
-          onTouchEnd={handleTouchEnd}
-        >
-          <div className="absolute top-0 left-0 w-full h-1 bg-white/30">
-            <div
-              className="h-full bg-white transition-all duration-100 ease-linear"
-              style={{ width: `${progress * 100}%` }}
-            />
-          </div>
-
-          <div className="relative max-w-3xl w-full h-full flex items-center justify-center">
-            {product.media[modalIndex].type === "image" ? (
-              <img
-                src={product.media[modalIndex].src}
-                alt="modal"
-                className="w-full h-full object-contain px-4"
-              />
-            ) : (
-              <video
-                src={product.media[modalIndex].src}
-                poster={product.media[modalIndex].poster}
-                className="w-full h-full object-contain px-4"
-                autoPlay
-                muted
-                playsInline
-              />
+      <AnimatePresence>
+        {isModalOpen && (
+          <motion.div
+            initial={{ opacity: 0, scale: 0.98, y: 20 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.96, y: 20 }}
+            className="fixed inset-0 z-50 bg-black/80 backdrop-blur-lg flex items-center justify-center"
+            onTouchStart={handleTouchStart}
+            onTouchMove={handleTouchMove}
+            onTouchEnd={handleTouchEnd}
+            onClick={(e) => {
+              if (e.target === e.currentTarget) setIsModalOpen(false);
+            }}
+          >
+            {showHint && (
+              <div className="absolute top-4 inset-x-0 text-center text-white/70 text-xs">
+                Свайп вниз, чтобы закрыть
+              </div>
             )}
-          </div>
 
-          <div className="absolute bottom-4 flex gap-2">
-            {product.media.map((_, i) => (
+            <div className="absolute top-4 right-5 text-white text-xs">
+              {modalIndex + 1} / {product.media.length}
+            </div>
+
+            <div className="absolute top-0 left-0 w-full h-1 bg-white/30">
               <div
-                key={i}
-                className={`w-2.5 h-2.5 rounded-full transition-all duration-300 ${
-                  modalIndex === i ? "bg-white" : "bg-white/40"
-                }`}
+                className="h-full bg-white transition-all duration-100 ease-linear"
+                style={{ width: `${progress * 100}%` }}
               />
-            ))}
-          </div>
-        </div>
-      )}
+            </div>
+
+            <div className="relative max-w-3xl w-full h-full flex items-center justify-center px-4">
+              {product.media[modalIndex].type === "image" ? (
+                <img
+                  src={product.media[modalIndex].src}
+                  alt="modal"
+                  className="w-full h-full object-contain"
+                />
+              ) : (
+                <motion.video
+                  key={product.media[modalIndex].src}
+                  src={product.media[modalIndex].src}
+                  poster={product.media[modalIndex].poster}
+                  className="w-full h-full object-contain"
+                  autoPlay
+                  muted
+                  playsInline
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                />
+              )}
+            </div>
+
+            <div className="absolute bottom-12 left-1/2 -translate-x-1/2 flex gap-2">
+              {product.media.map((_, i) => (
+                <div
+                  key={i}
+                  onClick={() => setModalIndex(i)}
+                  className={`w-2.5 h-2.5 rounded-full cursor-pointer transition-all duration-300 ${
+                    modalIndex === i ? "bg-white" : "bg-white/40"
+                  }`}
+                />
+              ))}
+            </div>
+
+            <div className="absolute inset-0 flex">
+              <div
+                className="w-1/2 h-full"
+                onClick={() =>
+                  setModalIndex((prev) => (prev - 1 + product.media.length) % product.media.length)
+                }
+              />
+              <div
+                className="w-1/2 h-full"
+                onClick={() => setModalIndex((prev) => (prev + 1) % product.media.length)}
+              />
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </>
   );
 }
