@@ -38,10 +38,3 @@
   0% { background-position: -200% 0; }
   100% { background-position: 200% 0; }
 }
-
-html, body {
-  margin: 0;
-  padding: 0;
-  height: 100%;
-  overflow: hidden; /* Только когда открыт overlay */
-}

@@ -131,50 +131,56 @@ function ProductCard({ product }) {
 
       {/* MODAL */}
       {isModalOpen && (
-        <div className="fixed inset-0 z-50 bg-black/80 flex items-center justify-center p-4">
-          <button
+        <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 transition-all duration-300">
+            {/* Кнопка закрытия */}
+            <button
             onClick={() => setIsModalOpen(false)}
-            className="absolute top-4 right-4 text-white text-3xl font-light hover:opacity-70"
-          >
+            className="absolute top-4 right-4 text-white text-4xl font-light hover:opacity-60 transition"
+            >
             &times;
-          </button>
+            </button>
 
-          <div className="relative max-w-3xl w-full">
+            <div className="relative w-full max-w-[92vw] max-h-[92vh] flex items-center justify-center rounded-2xl overflow-hidden bg-black shadow-xl">
+            {/* Картинка или видео */}
             {product.media[modalIndex].type === "image" ? (
-              <img
+                <img
                 src={product.media[modalIndex].src}
                 alt="modal"
-                className="w-full h-auto object-contain rounded-xl"
-              />
+                className="w-full h-full object-contain"
+                />
             ) : (
-              <video
+                <video
                 src={product.media[modalIndex].src}
                 poster={product.media[modalIndex].poster}
-                className="w-full rounded-xl"
-                controls
+                className="w-full h-full object-contain"
                 autoPlay
-                muted
-              />
+                muted={false}
+                controls
+                playsInline
+                />
             )}
 
-            {/* Модальная навигация */}
+            {/* Стрелка влево */}
             <button
-              onClick={() =>
+                onClick={() =>
                 setModalIndex((prev) => (prev - 1 + product.media.length) % product.media.length)
-              }
-              className="absolute left-2 top-1/2 -translate-y-1/2 bg-white/30 hover:bg-white/50 text-white w-10 h-10 rounded-full flex items-center justify-center text-xl"
+                }
+                className="absolute left-2 sm:left-4 top-1/2 -translate-y-1/2 bg-white/20 hover:bg-white/30 text-white rounded-full w-10 h-10 flex items-center justify-center backdrop-blur-md transition"
             >
-              &#8592;
+                &#8592;
             </button>
+
+            {/* Стрелка вправо */}
             <button
-              onClick={() => setModalIndex((prev) => (prev + 1) % product.media.length)}
-              className="absolute right-2 top-1/2 -translate-y-1/2 bg-white/30 hover:bg-white/50 text-white w-10 h-10 rounded-full flex items-center justify-center text-xl"
+                onClick={() => setModalIndex((prev) => (prev + 1) % product.media.length)}
+                className="absolute right-2 sm:right-4 top-1/2 -translate-y-1/2 bg-white/20 hover:bg-white/30 text-white rounded-full w-10 h-10 flex items-center justify-center backdrop-blur-md transition"
             >
-              &#8594;
+                &#8594;
             </button>
-          </div>
+            </div>
         </div>
-      )}
+        )}
+
     </>
   );
 }
