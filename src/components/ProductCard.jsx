@@ -187,9 +187,9 @@ function ProductCard({ product }) {
             </div>
 
             <img
-              src="/savoa-logo.svg"
+              src="/logo.png"
               alt="SAVOA"
-              className="absolute opacity-5 w-1/2 max-w-xs bottom-10 left-1/2 -translate-x-1/2 pointer-events-none"
+              className="absolute opacity-50 w-1/2 max-w-xs bottom-10 left-1/2 -translate-x-1/2 pointer-events-none"
             />
 
             <div className="relative max-w-3xl w-full max-h-[90vh] flex items-center justify-center px-4">

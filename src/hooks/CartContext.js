@@ -1,6 +1,9 @@
-import { useState } from "react";
+// src/context/CartContext.jsx
+import { createContext, useContext, useState } from "react";
 
-export function useCart() {
+const CartContext = createContext(null);
+
+export function CartProvider({ children }) {
   const [cartItems, setCartItems] = useState([]);
 
   const addToCart = (product) => {
@@ -16,11 +19,31 @@ export function useCart() {
     });
   };
 
+  const handleWhatsAppOrder = () => {
+    const orderText = cartItems.map((item, index) => {
+      return `${index + 1}. ${item.name} — ${item.quantity} шт. × ${item.price}`;
+    }).join('\n');
+
+    const total = totalPrice.toLocaleString("ru-RU");
+    const fullMessage = `Заказ SAVOA:\n\n${orderText}\n\nИтого: ${total} ₸`;
+
+    const encoded = encodeURIComponent(fullMessage);
+    const whatsappURL = `https://wa.me/77760404661?text=${encoded}`;
+
+    window.open(whatsappURL, '_blank');
+  };
+
   const removeFromCart = (name) => {
     setCartItems((prev) => prev.filter((item) => item.name !== name));
   };
 
   const clearCart = () => setCartItems([]);
 
-  return { cartItems, addToCart, removeFromCart, clearCart };
+  return (
+    <CartContext.Provider value={{ cartItems, addToCart, removeFromCart, handleWhatsAppOrder, clearCart }}>
+      {children}
+    </CartContext.Provider>
+  );
 }
+
+export const useCartContext = () => useContext(CartContext);
