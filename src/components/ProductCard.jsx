@@ -2,43 +2,65 @@ import { useEffect, useRef, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useCartContext } from "../context/CartContext";
 
-const AUTOCHANGE_INTERVAL = 5000;
+const AUTOCHANGE_INTERVAL = 4000;
 
 function ProductCard({ product }) {
   const { addToCart } = useCartContext();
   const [index, setIndex] = useState(0);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [modalIndex, setModalIndex] = useState(0);
+  const [progress, setProgress] = useState(0);
+
+  const intervalRef = useRef(null);
+  const touchStart = useRef({ x: 0, y: 0 });
+  const touchEnd = useRef({ x: 0, y: 0 });
 
   const currentMedia = product.media[index];
   const isPng = currentMedia.type === "image" && currentMedia.src.endsWith(".png");
 
-  const containerRef = useRef(null);
-  const startX = useRef(0);
-  const deltaX = useRef(0);
-
   useEffect(() => {
-    const interval = setInterval(() => {
+    const timer = setInterval(() => {
       setIndex((prev) => (prev + 1) % product.media.length);
     }, AUTOCHANGE_INTERVAL);
-    return () => clearInterval(interval);
+    return () => clearInterval(timer);
   }, [product.media.length]);
 
-  const handleTouchStart = (e) => {
-    startX.current = e.touches[0].clientX;
+  const startAutoPlay = () => {
+    intervalRef.current = setInterval(() => {
+      setModalIndex((prev) => (prev + 1) % product.media.length);
+    }, AUTOCHANGE_INTERVAL);
   };
 
-  const handleTouchMove = (e) => {
-    deltaX.current = e.touches[0].clientX - startX.current;
-  };
+  const stopAutoPlay = () => clearInterval(intervalRef.current);
 
-  const handleTouchEnd = () => {
-    if (deltaX.current > 50) {
-      setIndex((prev) => (prev - 1 + product.media.length) % product.media.length);
-    } else if (deltaX.current < -50) {
-      setIndex((prev) => (prev + 1) % product.media.length);
+  useEffect(() => {
+    if (isModalOpen) {
+      startAutoPlay();
+      return stopAutoPlay;
     }
-    deltaX.current = 0;
+  }, [isModalOpen]);
+
+  useEffect(() => {
+    if (!isModalOpen) return;
+    setProgress(0);
+    const step = 100 / (AUTOCHANGE_INTERVAL / 100);
+    const p = setInterval(() => {
+      setProgress((prev) => (prev >= 100 ? 0 : prev + step));
+    }, 100);
+    return () => clearInterval(p);
+  }, [modalIndex, isModalOpen]);
+
+  const handleSwipe = () => {
+    const dx = touchEnd.current.x - touchStart.current.x;
+    const dy = touchEnd.current.y - touchStart.current.y;
+
+    if (Math.abs(dy) > 100 && Math.abs(dy) > Math.abs(dx)) {
+      setIsModalOpen(false);
+    } else if (dx > 50) {
+      setModalIndex((prev) => (prev - 1 + product.media.length) % product.media.length);
+    } else if (dx < -50) {
+      setModalIndex((prev) => (prev + 1) % product.media.length);
+    }
   };
 
   return (
@@ -48,17 +70,13 @@ function ProductCard({ product }) {
         whileInView={{ opacity: 1, scale: 1 }}
         transition={{ duration: 0.6 }}
         viewport={{ once: true }}
-        className="bg-white/70 backdrop-blur-lg border border-[#004018]/10 rounded-3xl shadow-2xl p-6 flex flex-col hover:shadow-[0_10px_40px_rgba(0,64,24,0.1)] transition-shadow duration-300"
+        className="bg-white/70 backdrop-blur-lg border border-[#004018]/10 rounded-3xl shadow-2xl p-6 flex flex-col"
       >
         <div
-          ref={containerRef}
           onClick={() => {
             setModalIndex(index);
             setIsModalOpen(true);
           }}
-          onTouchStart={handleTouchStart}
-          onTouchMove={handleTouchMove}
-          onTouchEnd={handleTouchEnd}
           className={`relative w-full mb-4 rounded-xl overflow-hidden ${
             isPng ? "bg-[#f8f0de]" : ""
           } flex items-center justify-center h-60 sm:h-72 cursor-pointer`}
@@ -82,12 +100,6 @@ function ProductCard({ product }) {
               playsInline
             />
           )}
-
-          {product.badge && (
-            <span className="absolute top-3 left-3 bg-[#004018] text-white text-xs px-3 py-1 rounded-full shadow">
-              {product.badge}
-            </span>
-          )}
         </div>
 
         <div className="flex gap-2 mb-3 justify-center">
@@ -97,17 +109,12 @@ function ProductCard({ product }) {
               onClick={() => setIndex(i)}
               className={`w-8 h-8 overflow-hidden border rounded ${
                 index === i ? "border-[#004018]" : "border-transparent opacity-50"
-              } transition-all duration-300`}
+              }`}
             >
               {item.type === "image" ? (
                 <img src={item.src} alt={`preview-${i}`} className="w-full h-full object-cover" />
               ) : (
-                <video
-                  src={item.src}
-                  poster={item.poster}
-                  className="w-full h-full object-cover"
-                  muted
-                />
+                <video src={item.src} poster={item.poster} className="w-full h-full object-cover" muted />
               )}
             </button>
           ))}
@@ -129,11 +136,9 @@ function ProductCard({ product }) {
         </button>
       </motion.div>
 
-      {/* MODAL — видео без звука, фото без зума, iOS/ПК-friendly */}
       <AnimatePresence>
         {isModalOpen && (
           <motion.div
-            key="modal"
             className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
@@ -144,14 +149,23 @@ function ProductCard({ product }) {
             <motion.div
               className="relative w-full max-w-5xl max-h-[92vh] rounded-2xl overflow-hidden shadow-xl bg-black flex items-center justify-center"
               onClick={(e) => e.stopPropagation()}
+              onTouchStart={(e) => {
+                touchStart.current = { x: e.touches[0].clientX, y: e.touches[0].clientY };
+              }}
+              onTouchEnd={(e) => {
+                touchEnd.current = { x: e.changedTouches[0].clientX, y: e.changedTouches[0].clientY };
+                handleSwipe();
+              }}
             >
-              <button
-                onClick={() => setIsModalOpen(false)}
-                className="absolute top-4 right-4 text-white text-4xl font-light z-10 hover:opacity-60 transition"
-              >
-                &times;
-              </button>
+              {/* Прогресс-бар */}
+              <div className="absolute top-0 left-0 w-full h-1 bg-white/30">
+                <div
+                  className="h-full bg-white transition-all"
+                  style={{ width: `${progress}%` }}
+                ></div>
+              </div>
 
+              {/* Контент */}
               {product.media[modalIndex].type === "image" ? (
                 <img
                   src={product.media[modalIndex].src}
@@ -169,24 +183,34 @@ function ProductCard({ product }) {
                   muted
                   playsInline
                   loop
-                  controls={false}
                 />
               )}
 
+              {/* Навигация */}
               <button
-                onClick={() =>
-                  setModalIndex((prev) => (prev - 1 + product.media.length) % product.media.length)
-                }
-                className="absolute left-2 sm:left-4 top-1/2 -translate-y-1/2 bg-white/20 hover:bg-white/30 text-white rounded-full w-10 h-10 flex items-center justify-center backdrop-blur-md transition"
+                onClick={() => setModalIndex((prev) => (prev - 1 + product.media.length) % product.media.length)}
+                className="absolute left-2 top-1/2 -translate-y-1/2 bg-white/20 hover:bg-white/30 text-white rounded-full w-10 h-10 flex items-center justify-center backdrop-blur-md transition"
               >
                 &#8592;
               </button>
               <button
                 onClick={() => setModalIndex((prev) => (prev + 1) % product.media.length)}
-                className="absolute right-2 sm:right-4 top-1/2 -translate-y-1/2 bg-white/20 hover:bg-white/30 text-white rounded-full w-10 h-10 flex items-center justify-center backdrop-blur-md transition"
+                className="absolute right-2 top-1/2 -translate-y-1/2 bg-white/20 hover:bg-white/30 text-white rounded-full w-10 h-10 flex items-center justify-center backdrop-blur-md transition"
               >
                 &#8594;
               </button>
+
+              {/* Точки */}
+              <div className="absolute bottom-4 w-full flex justify-center gap-2">
+                {product.media.map((_, i) => (
+                  <div
+                    key={i}
+                    className={`w-2 h-2 rounded-full transition-all duration-300 ${
+                      modalIndex === i ? "bg-white" : "bg-white/40"
+                    }`}
+                  ></div>
+                ))}
+              </div>
             </motion.div>
           </motion.div>
         )}
