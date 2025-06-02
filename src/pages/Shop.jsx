@@ -48,7 +48,7 @@ export default function Shop() {
   }, [cartItems.length]);
 
   return (
-    <div className="relative w-full bg-gradient-to-b from-[#f8f0de] to-[#f2e8d4] py-8 px-4 sm:px-6 font-sans">
+    <div className="relative w-full bg-gradient-to-b from-[#f8f0de] to-[#f2e8d4] py-11 px-4 sm:px-6 font-sans">
       {/* Кнопка корзины */}
       <motion.button
         onClick={() => setCartOpen(true)}
@@ -93,14 +93,6 @@ export default function Shop() {
           <span className="font-light">SAVOA</span>
           <span className="w-8 sm:w-12 h-[1px] bg-[#004018]/20" />
         </div>
-
-        {/* <h1 className="text-3xl sm:text-5xl font-light tracking-[.2em] mt-2 sm:mt-4 text-[#004018] uppercase leading-tight">
-          The SAVOA Edit
-        </h1>
-
-        <p className="text-xs sm:text-sm text-[#004018]/60 italic mt-2 sm:mt-3 max-w-md mx-auto">
-          Curated pieces for balance, clarity and daily rituals
-        </p> */}
       </motion.div>
 
       {/* Сетка карточек товаров */}

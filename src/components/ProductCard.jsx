@@ -160,7 +160,7 @@ function ProductCard({ product }) {
           >
             {typeof window !== "undefined" && window.innerWidth > 768 && (
               <button
-                className="absolute top-6 right-6 text-white hover:text-white/70 transition"
+                className="absolute top-10 right-5 text-white hover:text-white/70 transition z-50"
                 onClick={() => setIsModalOpen(false)}
               >
                 <X size={24} />
