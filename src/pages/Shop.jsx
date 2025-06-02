@@ -7,8 +7,8 @@ import { ShoppingCart } from "lucide-react";
 
 const products = [
   {
-    name: "Savoa Bottle",
-    price: "7 000 ₸",
+    name: "Water Bottle",
+    price: "9 000 ₸",
     media: [
       { type: "image", src: "/shop/bottle.png" },
       { type: "video", src: "/shop/bottle-video.MOV", poster: "/shop/bottle-video-poster.jpg" },
