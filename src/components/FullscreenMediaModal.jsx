@@ -50,88 +50,110 @@ export default function FullscreenMediaModal({ media, initialIndex, onClose }) {
   const current = media[index];
 
   return (
-    <AnimatePresence>
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        exit={{ opacity: 0 }}
-        className="fixed inset-0 z-50 bg-black/90 backdrop-blur-sm flex items-center justify-center"
-        onClick={onClose}
-        onTouchStart={handleTouchStart}
-        onTouchMove={handleTouchMove}
-        onTouchEnd={handleTouchEnd}
+  <AnimatePresence>
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      className="fixed inset-0 z-[60] bg-black/90 backdrop-blur-sm"
+      onClick={onClose}
+      onTouchStart={handleTouchStart}
+      onTouchMove={handleTouchMove}
+      onTouchEnd={handleTouchEnd}
+    >
+      {/* Задний фон — текущая фотка/видео, затемнённая */}
+      <div className="absolute inset-0 z-0">
+        {current.type === "image" ? (
+          <img
+            src={current.src}
+            alt="background"
+            className="w-full h-full object-cover opacity-20 blur-md"
+          />
+        ) : (
+          <video
+            src={current.src}
+            className="w-full h-full object-cover opacity-20 blur-md"
+            autoPlay
+            muted
+            loop
+            playsInline
+          />
+        )}
+      </div>
+
+      {/* Основной контент сверху */}
+      <div
+        className="relative z-10 w-full max-w-4xl mx-auto px-4 flex flex-col items-center justify-center min-h-screen"
+        onClick={(e) => e.stopPropagation()}
       >
-        <div
-          className="relative w-full max-w-4xl mx-auto px-4"
-          onClick={(e) => e.stopPropagation()}
-        >
-          {/* Hint */}
-          {showHint && (
-            <div className="absolute top-5 inset-x-0 text-center text-white/70 text-sm animate-fadeIn">
-              Свайп вниз, чтобы закрыть
-            </div>
-          )}
-
-          {/* Counter */}
-          <div className="absolute top-5 right-5 text-white text-sm">
-            {index + 1} / {media.length}
+        {/* Hint */}
+        {showHint && (
+          <div className="absolute top-5 inset-x-0 text-center text-white/70 text-sm animate-fadeIn z-20">
+            Свайп вниз, чтобы закрыть
           </div>
+        )}
 
-          {/* Media */}
-          <div className="aspect-video rounded-2xl overflow-hidden shadow-xl">
-            {current.type === "image" ? (
-              <img
-                src={current.src}
-                alt="preview"
-                className="w-full h-full object-contain"
-              />
-            ) : (
-              <video
-                src={current.src}
-                poster={current.poster}
-                className="w-full h-full object-cover"
-                autoPlay
-                muted
-                loop
-                playsInline
-              />
-            )}
-          </div>
-
-          {/* Progress bar */}
-          <div className="absolute bottom-5 left-1/2 -translate-x-1/2 w-48 h-1 bg-white/20 rounded">
-            <div
-              className="h-full bg-white rounded"
-              style={{ width: `${progress * 100}%`, transition: 'width 100ms linear' }}
-            />
-          </div>
-
-          {/* Dot indicators */}
-          <div className="absolute bottom-10 left-1/2 -translate-x-1/2 flex gap-2">
-            {media.map((_, i) => (
-              <button
-                key={i}
-                onClick={() => setIndex(i)}
-                className={`w-2.5 h-2.5 rounded-full transition-all duration-300 ${
-                  i === index ? "bg-white" : "bg-white/30"
-                }`}
-              />
-            ))}
-          </div>
-
-          {/* Tap zones */}
-          <div className="absolute inset-0 flex">
-            <div
-              className="w-1/2 h-full"
-              onClick={() => setIndex((prev) => (prev - 1 + media.length) % media.length)}
-            />
-            <div
-              className="w-1/2 h-full"
-              onClick={() => setIndex((prev) => (prev + 1) % media.length)}
-            />
-          </div>
+        {/* Counter */}
+        <div className="absolute top-5 right-5 text-white text-sm z-20">
+          {index + 1} / {media.length}
         </div>
-      </motion.div>
-    </AnimatePresence>
-  );
+
+        {/* Media preview */}
+        <div className="aspect-video w-full rounded-2xl overflow-hidden shadow-xl z-20">
+          {current.type === "image" ? (
+            <img
+              src={current.src}
+              alt="preview"
+              className="w-full h-full object-contain"
+            />
+          ) : (
+            <video
+              src={current.src}
+              poster={current.poster}
+              className="w-full h-full object-cover"
+              autoPlay
+              muted
+              loop
+              playsInline
+            />
+          )}
+        </div>
+
+        {/* Progress bar */}
+        <div className="absolute bottom-5 left-1/2 -translate-x-1/2 w-48 h-1 bg-white/20 rounded z-20">
+          <div
+            className="h-full bg-white rounded"
+            style={{ width: `${progress * 100}%`, transition: "width 100ms linear" }}
+          />
+        </div>
+
+        {/* Dot indicators */}
+        <div className="absolute bottom-10 left-1/2 -translate-x-1/2 flex gap-2 z-20">
+          {media.map((_, i) => (
+            <button
+              key={i}
+              onClick={() => setIndex(i)}
+              className={`w-2.5 h-2.5 rounded-full transition-all duration-300 ${
+                i === index ? "bg-white" : "bg-white/30"
+              }`}
+            />
+          ))}
+        </div>
+
+        {/* Tap zones */}
+        <div className="absolute inset-0 flex z-30">
+          <div
+            className="w-1/2 h-full"
+            onClick={() => setIndex((prev) => (prev - 1 + media.length) % media.length)}
+          />
+          <div
+            className="w-1/2 h-full"
+            onClick={() => setIndex((prev) => (prev + 1) % media.length)}
+          />
+        </div>
+      </div>
+    </motion.div>
+  </AnimatePresence>
+);
+
 }

@@ -147,101 +147,130 @@ function ProductCard({ product }) {
       </motion.div>
 
       <AnimatePresence>
-        {isModalOpen && (
-          <motion.div
-            initial={{ opacity: 0, scale: 0.98, y: 20 }}
-            animate={{ opacity: 1, scale: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.96, y: 20 }}
-            className="fixed inset-0 z-50 bg-black/80 backdrop-blur-lg flex items-center justify-center"
-            onTouchStart={handleTouchStart}
-            onTouchMove={handleTouchMove}
-            onTouchEnd={handleTouchEnd}
-            onClick={handleModalClick}
-          >
-            {typeof window !== "undefined" && window.innerWidth > 768 && (
-              <button
-                className="absolute top-10 right-5 text-white hover:text-white/70 transition z-50"
-                onClick={() => setIsModalOpen(false)}
-              >
-                <X size={24} />
-              </button>
-            )}
-
-            <motion.div
-              className="absolute top-4 inset-x-0 text-center text-white/80 text-xs pointer-events-none"
-              animate={{ y: [0, -4, 0] }}
-              transition={{ duration: 1.5, repeat: Infinity }}
-            >
-              {hintText}
-            </motion.div>
-
-            <div className="absolute top-4 right-5 text-white text-xs">
-              {modalIndex + 1} / {product.media.length}
-            </div>
-
-            <div className="absolute top-0 left-0 w-full h-1 bg-white/30">
-              <div
-                className="h-full bg-white transition-all duration-100 ease-linear"
-                style={{ width: `${progress * 100}%` }}
-              />
-            </div>
-
+  {isModalOpen && (
+    <motion.div
+      initial={{ opacity: 0, scale: 0.98, y: 20 }}
+      animate={{ opacity: 1, scale: 1, y: 0 }}
+      exit={{ opacity: 0, scale: 0.96, y: 20 }}
+      className="fixed inset-0 z-50 bg-black/80 overflow-hidden backdrop-blur-lg"
+      onTouchStart={handleTouchStart}
+      onTouchMove={handleTouchMove}
+      onTouchEnd={handleTouchEnd}
+      onClick={handleModalClick}
+    >
+      {/* Фон-медиа — позади всего */}
+      <div className="absolute inset-0 z-0 pointer-events-none">
+        {product.media[modalIndex].type === "image" &&
+        product.media[modalIndex].src.endsWith(".png") ? (
+            <div className="w-full h-full " />
+        ) : product.media[modalIndex].type === "image" ? (
             <img
-              src="/logo.png"
-              alt="SAVOA"
-              className="absolute opacity-50 w-1/2 max-w-xs bottom-10 left-1/2 -translate-x-1/2 pointer-events-none"
+            src={product.media[modalIndex].src}
+            alt="bg"
+            className="w-full h-full object-cover opacity-20 blur-md"
             />
-
-            <div className="relative max-w-3xl w-full max-h-[90vh] flex items-center justify-center px-4">
-              {product.media[modalIndex].type === "image" ? (
-                <img
-                  src={product.media[modalIndex].src}
-                  alt="modal"
-                  className="w-full h-full object-contain"
-                />
-              ) : (
-                <motion.video
-                  key={product.media[modalIndex].src}
-                  src={product.media[modalIndex].src}
-                  poster={product.media[modalIndex].poster}
-                  className="w-full h-full object-contain"
-                  autoPlay
-                  muted
-                  playsInline
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  exit={{ opacity: 0 }}
-                />
-              )}
-            </div>
-
-            <div className="absolute bottom-12 left-1/2 -translate-x-1/2 flex gap-2">
-              {product.media.map((_, i) => (
-                <div
-                  key={i}
-                  onClick={() => setModalIndex(i)}
-                  className={`w-2.5 h-2.5 rounded-full cursor-pointer transition-all duration-300 ${
-                    modalIndex === i ? "bg-white" : "bg-white/40"
-                  }`}
-                />
-              ))}
-            </div>
-
-            <div className="absolute inset-0 flex">
-              <div
-                className="w-1/2 h-full"
-                onClick={() =>
-                  setModalIndex((prev) => (prev - 1 + product.media.length) % product.media.length)
-                }
-              />
-              <div
-                className="w-1/2 h-full"
-                onClick={() => setModalIndex((prev) => (prev + 1) % product.media.length)}
-              />
-            </div>
-          </motion.div>
+        ) : (
+            <video
+            src={product.media[modalIndex].src}
+            className="w-full h-full object-cover opacity-20 blur-md"
+            autoPlay
+            muted
+            loop
+            playsInline
+            />
         )}
-      </AnimatePresence>
+      </div>
+
+
+      {/* Основной контент поверх */}
+      <div className="relative z-10 w-full h-full flex flex-col items-center justify-center">
+        {/* Кнопка закрытия */}
+        {typeof window !== "undefined" && window.innerWidth > 768 && (
+          <button
+            className="absolute top-10 right-5 text-white hover:text-white/70 transition z-50"
+            onClick={() => setIsModalOpen(false)}
+          >
+            <X size={24} />
+          </button>
+        )}
+
+        {/* Подсказка */}
+        <motion.div
+          className="absolute top-4 inset-x-0 text-center text-white/80 text-xs pointer-events-none z-[50]"
+          animate={{ y: [0, -4, 0] }}
+          transition={{ duration: 1.5, repeat: Infinity }}
+        >
+          {hintText}
+        </motion.div>
+
+        {/* Индикатор позиции */}
+        <div className="absolute top-4 right-5 text-white text-xs">
+          {modalIndex + 1} / {product.media.length}
+        </div>
+
+        {/* Прогресс-бар */}
+        <div className="absolute top-0 left-0 w-full h-1 bg-white/30">
+          <div
+            className="h-full bg-white transition-all duration-100 ease-linear"
+            style={{ width: `${progress * 100}%` }}
+          />
+        </div>
+
+        {/* Основное фото/видео */}
+        <div className="relative max-w-3xl w-full max-h-[90vh] flex items-center justify-center px-4 z-0">
+          {product.media[modalIndex].type === "image" ? (
+            <img
+              src={product.media[modalIndex].src}
+              alt="modal"
+              className="w-full h-full object-contain relative z-0"
+            />
+          ) : (
+            <motion.video
+              key={product.media[modalIndex].src}
+              src={product.media[modalIndex].src}
+              poster={product.media[modalIndex].poster}
+              className="w-full h-full object-contain relative z-0"
+              autoPlay
+              muted
+              playsInline
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+            />
+          )}
+        </div>
+
+        {/* Точки-переключатели */}
+        <div className="absolute bottom-12 left-1/2 -translate-x-1/2 flex gap-2">
+          {product.media.map((_, i) => (
+            <div
+              key={i}
+              onClick={() => setModalIndex(i)}
+              className={`w-2.5 h-2.5 rounded-full cursor-pointer transition-all duration-300 ${
+                modalIndex === i ? "bg-white" : "bg-white/40"
+              }`}
+            />
+          ))}
+        </div>
+
+        {/* Зоны для переключения влево/вправо */}
+        <div className="absolute inset-0 flex">
+          <div
+            className="w-1/2 h-full"
+            onClick={() =>
+              setModalIndex((prev) => (prev - 1 + product.media.length) % product.media.length)
+            }
+          />
+          <div
+            className="w-1/2 h-full"
+            onClick={() => setModalIndex((prev) => (prev + 1) % product.media.length)}
+          />
+        </div>
+      </div>
+    </motion.div>
+  )}
+</AnimatePresence>
+
     </>
   );
 }
