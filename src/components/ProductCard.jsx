@@ -203,7 +203,7 @@ function ProductCard({ product }) {
 
             {/* SAVOA логотип на фоне */}
             <img
-              src="src\assets\logo.svg"
+              src="/logo.svg"
               alt="SAVOA"
               className="absolute opacity-60 w-1/2 max-w-xs bottom-10 left-1/2 -translate-x-1/2 pointer-events-none"
             />
