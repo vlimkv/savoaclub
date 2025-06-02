@@ -1,8 +1,8 @@
 import { useEffect, useRef, useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 import { useCartContext } from "../context/CartContext";
 
-const AUTOCHANGE_INTERVAL = 4000;
+const AUTOCHANGE_INTERVAL = 6000;
 
 function ProductCard({ product }) {
   const { addToCart } = useCartContext();
@@ -10,58 +10,57 @@ function ProductCard({ product }) {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [modalIndex, setModalIndex] = useState(0);
   const [progress, setProgress] = useState(0);
-
-  const intervalRef = useRef(null);
-  const touchStart = useRef({ x: 0, y: 0 });
-  const touchEnd = useRef({ x: 0, y: 0 });
+  const timerRef = useRef(null);
+  const containerRef = useRef(null);
 
   const currentMedia = product.media[index];
   const isPng = currentMedia.type === "image" && currentMedia.src.endsWith(".png");
 
-  useEffect(() => {
-    const timer = setInterval(() => {
-      setIndex((prev) => (prev + 1) % product.media.length);
-    }, AUTOCHANGE_INTERVAL);
-    return () => clearInterval(timer);
-  }, [product.media.length]);
-
-  const startAutoPlay = () => {
-    intervalRef.current = setInterval(() => {
-      setModalIndex((prev) => (prev + 1) % product.media.length);
-    }, AUTOCHANGE_INTERVAL);
+  const handleTouchStart = (e) => {
+    containerRef.current.startY = e.touches[0].clientY;
+    containerRef.current.startX = e.touches[0].clientX;
   };
 
-  const stopAutoPlay = () => clearInterval(intervalRef.current);
+  const handleTouchMove = (e) => {
+    const deltaY = e.touches[0].clientY - containerRef.current.startY;
+    const deltaX = e.touches[0].clientX - containerRef.current.startX;
+    containerRef.current.swipeY = deltaY;
+    containerRef.current.swipeX = deltaX;
+  };
+
+  const handleTouchEnd = () => {
+    const { swipeY, swipeX } = containerRef.current;
+    if (swipeY > 50) {
+      setIsModalOpen(false);
+    } else if (swipeX > 50) {
+      setModalIndex((prev) => (prev - 1 + product.media.length) % product.media.length);
+    } else if (swipeX < -50) {
+      setModalIndex((prev) => (prev + 1) % product.media.length);
+    }
+  };
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setIndex((prev) => (prev + 1) % product.media.length);
+    }, AUTOCHANGE_INTERVAL);
+    return () => clearInterval(interval);
+  }, [product.media.length]);
 
   useEffect(() => {
     if (isModalOpen) {
-      startAutoPlay();
-      return stopAutoPlay;
+      let start = Date.now();
+      timerRef.current = requestAnimationFrame(function animate() {
+        let elapsed = Date.now() - start;
+        setProgress(Math.min(elapsed / AUTOCHANGE_INTERVAL, 1));
+        if (elapsed < AUTOCHANGE_INTERVAL) {
+          timerRef.current = requestAnimationFrame(animate);
+        } else {
+          setModalIndex((prev) => (prev + 1) % product.media.length);
+        }
+      });
     }
-  }, [isModalOpen]);
-
-  useEffect(() => {
-    if (!isModalOpen) return;
-    setProgress(0);
-    const step = 100 / (AUTOCHANGE_INTERVAL / 100);
-    const p = setInterval(() => {
-      setProgress((prev) => (prev >= 100 ? 0 : prev + step));
-    }, 100);
-    return () => clearInterval(p);
+    return () => cancelAnimationFrame(timerRef.current);
   }, [modalIndex, isModalOpen]);
-
-  const handleSwipe = () => {
-    const dx = touchEnd.current.x - touchStart.current.x;
-    const dy = touchEnd.current.y - touchStart.current.y;
-
-    if (Math.abs(dy) > 100 && Math.abs(dy) > Math.abs(dx)) {
-      setIsModalOpen(false);
-    } else if (dx > 50) {
-      setModalIndex((prev) => (prev - 1 + product.media.length) % product.media.length);
-    } else if (dx < -50) {
-      setModalIndex((prev) => (prev + 1) % product.media.length);
-    }
-  };
 
   return (
     <>
@@ -70,9 +69,10 @@ function ProductCard({ product }) {
         whileInView={{ opacity: 1, scale: 1 }}
         transition={{ duration: 0.6 }}
         viewport={{ once: true }}
-        className="bg-white/70 backdrop-blur-lg border border-[#004018]/10 rounded-3xl shadow-2xl p-6 flex flex-col"
+        className="bg-white/70 backdrop-blur-lg border border-[#004018]/10 rounded-3xl shadow-2xl p-6 flex flex-col hover:shadow-[0_10px_40px_rgba(0,64,24,0.1)] transition-shadow duration-300"
       >
         <div
+          ref={containerRef}
           onClick={() => {
             setModalIndex(index);
             setIsModalOpen(true);
@@ -100,6 +100,16 @@ function ProductCard({ product }) {
               playsInline
             />
           )}
+
+          {product.badge && (
+            <span className="absolute top-3 left-3 bg-[#004018] text-white text-xs px-3 py-1 rounded-full shadow">
+              {product.badge}
+            </span>
+          )}
+
+          <span className="absolute bottom-3 right-3 text-white text-xs bg-black/50 px-2 py-1 rounded-full font-light">
+            Нажмите, чтобы открыть на весь экран
+          </span>
         </div>
 
         <div className="flex gap-2 mb-3 justify-center">
@@ -109,12 +119,17 @@ function ProductCard({ product }) {
               onClick={() => setIndex(i)}
               className={`w-8 h-8 overflow-hidden border rounded ${
                 index === i ? "border-[#004018]" : "border-transparent opacity-50"
-              }`}
+              } transition-all duration-300`}
             >
               {item.type === "image" ? (
                 <img src={item.src} alt={`preview-${i}`} className="w-full h-full object-cover" />
               ) : (
-                <video src={item.src} poster={item.poster} className="w-full h-full object-cover" muted />
+                <video
+                  src={item.src}
+                  poster={item.poster}
+                  className="w-full h-full object-cover"
+                  muted
+                />
               )}
             </button>
           ))}
@@ -136,85 +151,52 @@ function ProductCard({ product }) {
         </button>
       </motion.div>
 
-      <AnimatePresence>
-        {isModalOpen && (
-          <motion.div
-            className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.2 }}
-            onClick={() => setIsModalOpen(false)}
-          >
-            <motion.div
-              className="relative w-full max-w-5xl max-h-[92vh] rounded-2xl overflow-hidden shadow-xl bg-black flex items-center justify-center"
-              onClick={(e) => e.stopPropagation()}
-              onTouchStart={(e) => {
-                touchStart.current = { x: e.touches[0].clientX, y: e.touches[0].clientY };
-              }}
-              onTouchEnd={(e) => {
-                touchEnd.current = { x: e.changedTouches[0].clientX, y: e.changedTouches[0].clientY };
-                handleSwipe();
-              }}
-            >
-              {/* Прогресс-бар */}
-              <div className="absolute top-0 left-0 w-full h-1 bg-white/30">
-                <div
-                  className="h-full bg-white transition-all"
-                  style={{ width: `${progress}%` }}
-                ></div>
-              </div>
+      {/* FULLSCREEN MODAL */}
+      {isModalOpen && (
+        <div
+          className="fixed inset-0 z-50 bg-black flex flex-col items-center justify-center"
+          onTouchStart={handleTouchStart}
+          onTouchMove={handleTouchMove}
+          onTouchEnd={handleTouchEnd}
+        >
+          <div className="absolute top-0 left-0 w-full h-1 bg-white/30">
+            <div
+              className="h-full bg-white transition-all duration-100 ease-linear"
+              style={{ width: `${progress * 100}%` }}
+            />
+          </div>
 
-              {/* Контент */}
-              {product.media[modalIndex].type === "image" ? (
-                <img
-                  src={product.media[modalIndex].src}
-                  alt="modal"
-                  className={`max-h-[90vh] max-w-full object-contain ${
-                    product.media[modalIndex].src.endsWith(".png") ? "bg-transparent" : "bg-black"
-                  }`}
-                />
-              ) : (
-                <video
-                  src={product.media[modalIndex].src}
-                  poster={product.media[modalIndex].poster}
-                  className="max-h-[90vh] max-w-full object-contain bg-black"
-                  autoPlay
-                  muted
-                  playsInline
-                  loop
-                />
-              )}
+          <div className="relative max-w-3xl w-full h-full flex items-center justify-center">
+            {product.media[modalIndex].type === "image" ? (
+              <img
+                src={product.media[modalIndex].src}
+                alt="modal"
+                className="w-full h-full object-contain px-4"
+              />
+            ) : (
+              <video
+                src={product.media[modalIndex].src}
+                poster={product.media[modalIndex].poster}
+                className="w-full h-full object-contain px-4"
+                autoPlay
+                muted
+                playsInline
+              />
+            )}
+          </div>
 
-              {/* Навигация */}
-              <button
-                onClick={() => setModalIndex((prev) => (prev - 1 + product.media.length) % product.media.length)}
-                className="absolute left-2 top-1/2 -translate-y-1/2 bg-white/20 hover:bg-white/30 text-white rounded-full w-10 h-10 flex items-center justify-center backdrop-blur-md transition"
-              >
-                &#8592;
-              </button>
-              <button
-                onClick={() => setModalIndex((prev) => (prev + 1) % product.media.length)}
-                className="absolute right-2 top-1/2 -translate-y-1/2 bg-white/20 hover:bg-white/30 text-white rounded-full w-10 h-10 flex items-center justify-center backdrop-blur-md transition"
-              >
-                &#8594;
-              </button>
-
-              {/* Точки */}
-              <div className="absolute bottom-4 w-full flex justify-center gap-2">
-                {product.media.map((_, i) => (
-                  <div
-                    key={i}
-                    className={`w-2 h-2 rounded-full transition-all duration-300 ${
-                      modalIndex === i ? "bg-white" : "bg-white/40"
-                    }`}
-                  ></div>
-                ))}
-              </div>
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+          <div className="absolute bottom-4 flex gap-2">
+            {product.media.map((_, i) => (
+              <div
+                key={i}
+                className={`w-2.5 h-2.5 rounded-full transition-all duration-300 ${
+                  modalIndex === i ? "bg-white" : "bg-white/40"
+                }`}
+              />
+            ))}
+          </div>
+        </div>
+      )}
     </>
   );
 }
