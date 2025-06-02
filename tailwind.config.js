@@ -20,6 +20,9 @@ export default {
           '40%, 80%': { transform: 'translateX(5px)' },
         },
       },
+      height: {
+        'screen-safe': '100dvh',
+      },
     },
   },
 
