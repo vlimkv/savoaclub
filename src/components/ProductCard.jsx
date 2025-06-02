@@ -10,7 +10,7 @@ function ProductCard({ product }) {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [modalIndex, setModalIndex] = useState(0);
   const [progress, setProgress] = useState(0);
-  const [showHint, setShowHint] = useState(true);
+  const [hintText, setHintText] = useState("Чтобы выйти, просто проведите вниз ⇅");
   const timerRef = useRef(null);
   const containerRef = useRef({ startX: 0, startY: 0, swipeX: 0, swipeY: 0 });
 
@@ -40,6 +40,15 @@ function ProductCard({ product }) {
     }
   };
 
+  const handleModalClick = (e) => {
+    if (e.target === e.currentTarget) {
+      setIsModalOpen(false);
+      if (window.innerWidth > 768) {
+        setHintText("Tap to close ✕");
+      }
+    }
+  };
+
   useEffect(() => {
     const interval = setInterval(() => {
       setIndex((prev) => (prev + 1) % product.media.length);
@@ -64,11 +73,6 @@ function ProductCard({ product }) {
   }, [modalIndex, isModalOpen]);
 
   useEffect(() => {
-    const timeout = setTimeout(() => setShowHint(false), 2000);
-    return () => clearTimeout(timeout);
-  }, []);
-
-  useEffect(() => {
     const handleKeyDown = (e) => {
       if (e.key === "Escape") setIsModalOpen(false);
     };
@@ -89,6 +93,7 @@ function ProductCard({ product }) {
           ref={containerRef}
           onClick={() => {
             setModalIndex(index);
+            setHintText("Чтобы выйти, просто проведите вниз ⇅");
             setIsModalOpen(true);
           }}
           className={`relative w-full mb-4 rounded-xl overflow-hidden ${
@@ -175,15 +180,15 @@ function ProductCard({ product }) {
             onTouchStart={handleTouchStart}
             onTouchMove={handleTouchMove}
             onTouchEnd={handleTouchEnd}
-            onClick={(e) => {
-              if (e.target === e.currentTarget) setIsModalOpen(false);
-            }}
+            onClick={handleModalClick}
           >
-            {showHint && (
-              <div className="absolute top-4 inset-x-0 text-center text-white/70 text-xs">
-                Свайп вниз, чтобы закрыть
-              </div>
-            )}
+            <motion.div
+              className="absolute top-4 inset-x-0 text-center text-white/80 text-xs pointer-events-none"
+              animate={{ y: [0, -4, 0] }}
+              transition={{ duration: 1.5, repeat: Infinity }}
+            >
+              {hintText}
+            </motion.div>
 
             <div className="absolute top-4 right-5 text-white text-xs">
               {modalIndex + 1} / {product.media.length}
@@ -195,6 +200,13 @@ function ProductCard({ product }) {
                 style={{ width: `${progress * 100}%` }}
               />
             </div>
+
+            {/* SAVOA логотип на фоне */}
+            <img
+              src="src\assets\logo.svg"
+              alt="SAVOA"
+              className="absolute opacity-60 w-1/2 max-w-xs bottom-10 left-1/2 -translate-x-1/2 pointer-events-none"
+            />
 
             <div className="relative max-w-3xl w-full h-full flex items-center justify-center px-4">
               {product.media[modalIndex].type === "image" ? (
