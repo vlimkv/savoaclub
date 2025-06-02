@@ -1,6 +1,6 @@
 import { motion } from "framer-motion";
-import ProductCard from "../components/ProductCard"; // путь к твоему компоненту
-// Пример product массива (можно импортировать отдельно)
+import ProductCard from "../components/ProductCard";
+
 const products = [
   {
     name: "Savoa Bottle",
@@ -18,18 +18,29 @@ const products = [
 
 export default function Shop() {
   return (
-    <div className="w-full bg-gradient-to-b from-[#f8f0de] to-[#f2e8d4] py-16 px-4 sm:px-6 font-sans">
+    <div className="w-full bg-gradient-to-b from-[#f8f0de] to-[#f2e8d4] py-14 px-4 sm:px-6 font-sans">
       <motion.div
         initial={{ opacity: 0, y: 30 }}
         whileInView={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.8 }}
         viewport={{ once: true }}
-        className="max-w-6xl mx-auto text-center mb-14"
+        className="max-w-6xl mx-auto text-center mb-12"
       >
-        <h1 className="text-5xl sm:text-6xl font-light tracking-widest uppercase text-[#004018]">
-          SAVOA <span className="italic font-normal">Store</span>
+        {/* Адаптивный заголовок с линией и брендингом */}
+        <div className="flex items-center justify-center gap-2 sm:gap-4 text-[#004018]/80 text-xs sm:text-sm tracking-widest uppercase">
+          <span className="w-8 sm:w-12 h-[1px] bg-[#004018]/20" />
+          <span className="italic">by</span>
+          <span className="font-light">SAVOA</span>
+          <span className="w-8 sm:w-12 h-[1px] bg-[#004018]/20" />
+        </div>
+
+        <h1 className="text-3xl sm:text-5xl font-light tracking-[.2em] mt-2 sm:mt-4 text-[#004018] uppercase leading-tight">
+          The SAVOA Edit
         </h1>
-        <div className="mt-3 h-[2px] w-16 bg-[#004018]/30 mx-auto rounded-full" />
+
+        <p className="text-xs sm:text-sm text-[#004018]/60 italic mt-2 sm:mt-3 max-w-md mx-auto">
+          Curated pieces for balance, clarity and daily rituals
+        </p>
       </motion.div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-10 max-w-6xl mx-auto">
@@ -40,3 +51,4 @@ export default function Shop() {
     </div>
   );
 }
+

@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useCartContext } from "../context/CartContext";
+import { X } from "lucide-react";
 
 const AUTOCHANGE_INTERVAL = 6000;
 
@@ -131,43 +132,18 @@ function ProductCard({ product }) {
           </span>
         </div>
 
-        <div className="flex gap-2 mb-3 justify-center">
-          {product.media.map((item, i) => (
+        <div className="flex items-center justify-between mt-4 w-full px-1 text-[#004018]">
+            <div>
+                <h2 className="text-lg font-light uppercase tracking-wide">{product.name}</h2>
+                <p className="text-sm text-[#004018]/70">{product.price}</p>
+            </div>
             <button
-              key={i}
-              onClick={() => setIndex(i)}
-              className={`w-8 h-8 overflow-hidden border rounded ${
-                index === i ? "border-[#004018]" : "border-transparent opacity-50"
-              } transition-all duration-300`}
+                onClick={() => addToCart(product)}
+                className="px-5 py-2 rounded-full bg-[#004018] text-white hover:bg-[#003015] transition-all duration-300 text-xs uppercase tracking-widest"
             >
-              {item.type === "image" ? (
-                <img src={item.src} alt={`preview-${i}`} className="w-full h-full object-cover" />
-              ) : (
-                <video
-                  src={item.src}
-                  poster={item.poster}
-                  className="w-full h-full object-cover"
-                  muted
-                />
-              )}
+                В корзину
             </button>
-          ))}
         </div>
-
-        <h2 className="text-xl font-light text-[#004018] tracking-wide mb-1 uppercase text-center">
-          {product.name}
-        </h2>
-        <p className="text-[#004018]/70 font-semibold mb-2 text-center">{product.price}</p>
-        <p className="text-sm text-[#004018]/80 mb-5 leading-relaxed text-center italic">
-          {product.description}
-        </p>
-
-        <button
-          onClick={() => addToCart(product)}
-          className="mt-auto mx-auto px-6 py-2 rounded-full bg-[#004018] text-white hover:bg-[#003015] transition-all duration-300 text-sm font-light tracking-wider uppercase shadow-md hover:shadow-xl"
-        >
-          В корзину
-        </button>
       </motion.div>
 
       <AnimatePresence>
@@ -182,6 +158,15 @@ function ProductCard({ product }) {
             onTouchEnd={handleTouchEnd}
             onClick={handleModalClick}
           >
+            {typeof window !== "undefined" && window.innerWidth > 768 && (
+              <button
+                className="absolute top-6 right-6 text-white hover:text-white/70 transition"
+                onClick={() => setIsModalOpen(false)}
+              >
+                <X size={24} />
+              </button>
+            )}
+
             <motion.div
               className="absolute top-4 inset-x-0 text-center text-white/80 text-xs pointer-events-none"
               animate={{ y: [0, -4, 0] }}
@@ -201,14 +186,13 @@ function ProductCard({ product }) {
               />
             </div>
 
-            {/* SAVOA логотип на фоне */}
             <img
-              src="/logo.svg"
+              src="/savoa-logo.svg"
               alt="SAVOA"
-              className="absolute opacity-60 w-1/2 max-w-xs bottom-10 left-1/2 -translate-x-1/2 pointer-events-none"
+              className="absolute opacity-5 w-1/2 max-w-xs bottom-10 left-1/2 -translate-x-1/2 pointer-events-none"
             />
 
-            <div className="relative max-w-3xl w-full h-full flex items-center justify-center px-4">
+            <div className="relative max-w-3xl w-full max-h-[90vh] flex items-center justify-center px-4">
               {product.media[modalIndex].type === "image" ? (
                 <img
                   src={product.media[modalIndex].src}
