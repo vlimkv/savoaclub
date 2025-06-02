@@ -40,7 +40,7 @@ export default function Footer() {
           <Link to="/about" className="hover:underline">О нас</Link>
           <Link to="/events" className="hover:underline">Ивенты</Link>
           <Link to="/shop" className="hover:underline">Магазин</Link>
-          <Link to="/contact" className="hover:underline">Контакты</Link>
+          <Link to="/contact" className="hover:underline">Сотрудничество</Link>
         </div>
 
         {/* Подписка */}
