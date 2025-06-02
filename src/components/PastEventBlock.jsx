@@ -16,13 +16,18 @@ export default function PastEventBlock() {
   const [isPaused, setIsPaused] = useState(false);
   const [progress, setProgress] = useState(0); 
   const [eventMedia, setEventMedia] = useState([]);
+  if (!eventMedia.length || mediaIdx >= eventMedia.length) return null;
+  const currentMedia = eventMedia[mediaIdx];
   const [partners, setPartners] = useState([]);
+  const [eventInfo, setEventInfo] = useState(null);
   const autoSwipeRef = useRef();
   const rafRef = useRef();
   const touchStartX = useRef(null);
   const progressStartTime = useRef(null);
   const progressAtPause = useRef(0);
   const videoRef = useRef(null);
+  const justAdvancedRef = useRef(false);
+
 
   const getCurrentDuration = () => {
     if (videoRef.current?.duration) return videoRef.current.duration * 1000;
@@ -39,7 +44,6 @@ export default function PastEventBlock() {
 
   useEffect(() => {
     const fetchData = async () => {
-      // Найдём последний event_id, у которого есть медиа
       const { data: mediaEvents } = await supabase
         .from("event_media")
         .select("event_id")
@@ -54,9 +58,8 @@ export default function PastEventBlock() {
       mediaEvents?.forEach((m) => ids.add(m.event_id));
       partnerEvents?.forEach((p) => ids.add(p.event_id));
 
-      const firstEventId = [...ids][0]; // берем первый найденный id
-
-      if (!firstEventId) return; // ничего нет — не отображаем
+      const firstEventId = [...ids][0];
+      if (!firstEventId) return;
 
       const { data: mediaData } = await supabase
         .from("event_media")
@@ -68,12 +71,17 @@ export default function PastEventBlock() {
         .select("*")
         .eq("event_id", firstEventId);
 
+      const { data: eventMeta } = await supabase
+        .from("events")
+        .select("title, date, time, location")
+        .eq("id", firstEventId)
+        .single(); // берём один
+
       const mappedMedia = (mediaData || []).map((m) => ({
         ...m,
         type: m.type || (m.filename?.toLowerCase().endsWith(".mp4") ? "video" : "image"),
-        src: getMediaUrl("event-media", m.filename),
+        src: m.filename ? getMediaUrl("event-media", m.filename) : "",
       }));
-
 
       const mappedPartners = (partnersData || []).map((p) => ({
         ...p,
@@ -82,10 +90,13 @@ export default function PastEventBlock() {
 
       setEventMedia(mappedMedia);
       setPartners(mappedPartners);
+      setEventInfo(eventMeta);
     };
 
     fetchData();
   }, []);
+
+  
 
   useEffect(() => {
     if (autoSwipeRef.current) clearTimeout(autoSwipeRef.current);
@@ -95,7 +106,7 @@ export default function PastEventBlock() {
       currentDuration = videoRef.current.duration * 1000;
     }
 
-
+    
     const animate = (now) => {
       if (isPaused) return;
       if (!progressStartTime.current) progressStartTime.current = now;
@@ -104,13 +115,13 @@ export default function PastEventBlock() {
       const nextProgress = Math.min(elapsed / currentDuration, 1);
 
       setProgress(nextProgress);
-      
+      if (justAdvancedRef.current) return;
 
       if (nextProgress >= 1) {
+        justAdvancedRef.current = true;
         setDirection(1);
-        setMediaIdx((prev) =>
-          eventMedia.length > 0 ? (prev + 1) % eventMedia.length : 0
-        );
+        setMediaIdx((prev) => (prev + 1) % eventMedia.length);
+        setTimeout(() => (justAdvancedRef.current = false), 100);
       } else {
         rafRef.current = requestAnimationFrame(animate);
       }
@@ -166,13 +177,19 @@ export default function PastEventBlock() {
   };
 
   const handleVideoEnd = () => {
-    setIsPaused(false); // СНИМАЕМ ПАУЗУ
+    setIsPaused(false);
     setDirection(1);
     setMediaIdx((prev) => (prev + 1) % eventMedia.length);
     setProgress(0);
     progressAtPause.current = 0;
     progressStartTime.current = performance.now();
   };
+
+  useEffect(() => {
+    if (!isPaused && videoRef.current && eventMedia[mediaIdx]?.type === "video") {
+      videoRef.current.play().catch(() => {});
+    }
+  }, [mediaIdx]);
 
   const variants = {
     enter: (direction) => ({
@@ -197,9 +214,6 @@ export default function PastEventBlock() {
     })
   };
 
-  if (!eventMedia.length || !eventMedia[mediaIdx]) return null;
-  const currentMedia = eventMedia[mediaIdx];
-
   return (
     <section className="w-full flex flex-col items-center py-12 sm:py-24 bg-transparent">
       <motion.div
@@ -212,176 +226,173 @@ export default function PastEventBlock() {
             boxShadow: "0 8px 36px 0 rgba(208,183,142,0.13), 0 2px 8px 0 rgba(180,170,150,0.06)",
         }}
         >
-  <div className="relative w-full bg-[#f5f0e4] overflow-hidden">
-    <div
-      className="
-        relative h-[220px] xs:h-[290px] sm:h-[350px] md:h-[410px] w-full flex items-center justify-center select-none touch-pan-x overflow-hidden
-      "
-      onMouseDown={handlePause}
-      onMouseUp={handleResume}
-      onMouseLeave={handleResume}
-      onTouchCancel={handleResume}
-      onTouchStart={handleTouchStart}
-      onTouchEnd={handleTouchEnd}
-      style={{ position: "relative", zIndex: 1 }}
-    >
-      {/* Прогресс-бар */}
-      <div className="absolute top-0 left-0 w-full z-30 pointer-events-none">
-        <div className="w-full h-[2.5px] bg-[#f8f0de]/80 flex rounded-none">
-          {eventMedia?.map((_, i) => (
+          <div className="relative w-full bg-[#f5f0e4] overflow-hidden">
             <div
-              key={eventMedia[i]?.id || `${eventMedia[i]?.filename}-${i}`}
-              className="flex-1 relative"
-              style={{ marginRight: i !== eventMedia.length - 1 ? 2 : 0 }}
+              className="
+                relative h-[220px] xs:h-[290px] sm:h-[350px] md:h-[410px] w-full flex items-center justify-center select-none touch-pan-x overflow-hidden
+              "
+              onMouseDown={handlePause}
+              onMouseUp={handleResume}
+              onMouseLeave={handleResume}
+              onTouchCancel={handleResume}
+              onTouchStart={handleTouchStart}
+              onTouchEnd={handleTouchEnd}
+              style={{ position: "relative", zIndex: 1 }}
             >
+              {/* Прогресс-бар */}
+              <div className="absolute top-0 left-0 w-full z-30 pointer-events-none">
+                <div className="w-full h-[2.5px] bg-[#f8f0de]/80 flex rounded-none">
+                  {eventMedia.map((m, i) => (
+                    <div
+                      key={`progress-${i}-${m.id || m.filename || i}`}
+                      className="flex-1 relative"
+                      style={{ marginRight: i !== eventMedia.length - 1 ? 2 : 0 }}
+                    >
+                      <div
+                        className={`absolute left-0 top-0 h-full ${
+                          i < mediaIdx
+                            ? "bg-[#004018]"
+                            : i === mediaIdx
+                            ? "bg-[#004018]"
+                            : "bg-transparent"
+                        }`}
+                        style={{
+                          width:
+                            i < mediaIdx
+                              ? "100%"
+                              : i === mediaIdx
+                              ? `${Math.round(progress * 100)}%`
+                              : "0%",
+                          transition: i === mediaIdx ? "width 0.05s linear" : "none",
+                        }}
+                      />
+                    </div>
+                  ))}
+                </div>
+              </div>
+              {/* Медиа */}
+              <AnimatePresence custom={direction} initial={false} mode="wait">
+                <motion.div
+                  key={`media-${mediaIdx}-${currentMedia?.id || currentMedia?.filename || mediaIdx}`}
+                  variants={variants}
+                  initial="enter"
+                  animate="center"
+                  exit="exit"
+                  custom={direction}
+                  className="object-cover w-full h-full max-h-full flex items-center justify-center"
+                >
+                  {currentMedia.type === "image" ? (
+                    <img
+                      src={currentMedia.src}
+                      alt={currentMedia.alt}
+                      className="object-cover w-full h-full"
+                      draggable={false}
+                    />
+                  ) : (
+                    <video
+                      key={`video-${currentMedia.src}`}
+                      ref={videoRef}
+                      src={currentMedia.src}
+                      className="object-cover w-full h-full"
+                      autoPlay
+                      muted
+                      loop={false}
+                      playsInline
+                      preload="auto"
+                      onEnded={handleVideoEnd}
+                    />
+                  )}
+                </motion.div>
+              </AnimatePresence>
+
+              {/* Градиент */}
               <div
-                className={`absolute left-0 top-0 h-full ${
-                  i < mediaIdx
-                    ? "bg-[#004018]"
-                    : i === mediaIdx
-                    ? "bg-[#004018]"
-                    : "bg-transparent"
-                }`}
+                className="absolute left-0 bottom-0 w-full"
                 style={{
-                  width:
-                    i < mediaIdx
-                      ? "100%"
-                      : i === mediaIdx
-                      ? `${Math.round(progress * 100)}%`
-                      : "0%",
-                  transition: i === mediaIdx ? "width 0.05s linear" : "none",
+                  height: "100px",
+                  background: "linear-gradient(180deg,rgba(252,247,238,0.01) 38%,#f8f0de 100%)",
+                  pointerEvents: "none",
+                  zIndex: 2,
                 }}
               />
+              {/* Точки — z-50 всегда поверх */}
+              <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2 z-50">
+                {eventMedia.map((m, i) => (
+                  <button
+                    key={`dot-${i}-${m.id || m.filename || i}`}
+                    className={`w-2 h-2 rounded-full border border-[#e8d5b7] ${i === mediaIdx ? "bg-[#004018]/90 scale-125 shadow" : "bg-[#ede4d4]"} transition-all`}
+                    onClick={() => {
+                      setDirection(i > mediaIdx ? 1 : -1);
+                      setMediaIdx(i);
+                      setProgress(0);
+                      progressStartTime.current = performance.now();
+                      progressAtPause.current = 0;
+                    }}
+                    aria-label={`Show media ${i + 1}`}
+                    tabIndex={-1}
+                  />
+                ))}
+              </div>
             </div>
-          ))}
-        </div>
-      </div>
-      {/* Медиа */}
-      <AnimatePresence custom={direction} initial={false} mode="wait">
-        <motion.div
-          key={eventMedia[mediaIdx]?.id || mediaIdx}
-          variants={variants}
-          initial="enter"
-          animate="center"
-          exit="exit"
-          custom={direction}
-          className="object-cover w-full h-full max-h-full flex items-center justify-center"
-        >
-          {currentMedia.type === "image" ? (
-            <img
-              src={eventMedia[mediaIdx].src}
-              alt={eventMedia[mediaIdx].alt}
-              className="object-cover w-full h-full"
-              draggable={false}
-            />
-          ) : (
-            <video
-              key={eventMedia[mediaIdx].src}
-              ref={videoRef}
-              src={eventMedia[mediaIdx].src}
-              className="object-cover w-full h-full"
-              autoPlay
-              muted
-              loop={false}
-              playsInline
-              preload="auto"
-              onEnded={handleVideoEnd}
-            />
-          )}
+          </div>
+            <div
+            className="w-full sm:px-10 py-8 text-center text-[#004018] flex flex-col items-center bg-[#f8f0de] -mt-1 relative z-10"
+            style={{ boxShadow: "0 -1px 40px 0 #f8f0de" }}
+          >
+            <h2 className="text-xl sm:text-2xl font-light tracking-wide mb-1 uppercase" style={{ letterSpacing: "0.12em" }}>
+              {eventInfo?.title || "SAVOA Event"}
+            </h2>
+            <div className="text-xs sm:text-base text-[#5e765a] tracking-wide font-medium mb-4 uppercase" style={{ letterSpacing: "0.16em" }}>
+              {eventInfo?.date || "Дата неизвестна"} &middot; {eventInfo?.location || "Локация неизвестна"}
+            </div>
+            {/* Партнёры — Apple style */}
+            <div className="w-full flex justify-center items-center mt-2">
+              <div className="grid grid-cols-3 gap-x-5 sm:gap-x-12 w-full max-w-xs sm:max-w-md">
+                {partners?.map((p) => (
+                  <img
+                    key={p.id || p.filename || p.name || index}
+                    alt={p.alt || "partner"}
+                    src={p.src}
+                    className="
+                      h-10 sm:h-14 w-full object-contain
+                      transition-all
+                    "
+                    style={{
+                      minWidth: 0,           // предотвращает переполнение
+                      maxHeight: "56px",     // одинаковая высота (sm: 56px)
+                      filter: "grayscale(0.08) brightness(0.97)",
+                    }}
+                  />
+                ))}
+              </div>
+            </div>
+          </div>
         </motion.div>
-      </AnimatePresence>
-      {/* Градиент */}
-      <div
-        className="absolute left-0 bottom-0 w-full"
-        style={{
-          height: "100px",
-          background: "linear-gradient(180deg,rgba(252,247,238,0.01) 38%,#f8f0de 100%)",
-          pointerEvents: "none",
-          zIndex: 2,
-        }}
-      />
-      {/* Точки — z-50 всегда поверх */}
-      <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2 z-50">
-        {eventMedia?.map((_, i) => (
-          <button
-            key={eventMedia[i]?.id || `${eventMedia[i]?.filename}-${i}`}
-            className={`w-2 h-2 rounded-full border border-[#e8d5b7] ${i === mediaIdx ? "bg-[#004018]/90 scale-125 shadow" : "bg-[#ede4d4]"} transition-all`}
-            onClick={() => {
-              setDirection(i > mediaIdx ? 1 : -1);
-              setMediaIdx(i);
-              setProgress(0);
-              progressStartTime.current = performance.now();
-              progressAtPause.current = 0;
-            }}
-            aria-label={`Show media ${i + 1}`}
-            tabIndex={-1}
-          />
-        ))}
-      </div>
-    </div>
-  </div>
-    <div
-    className="w-full sm:px-10 py-8 text-center text-[#004018] flex flex-col items-center bg-[#f8f0de] -mt-1 relative z-10"
-    style={{ boxShadow: "0 -1px 40px 0 #f8f0de" }}
-  >
-    <h2
-      className="text-xl sm:text-2xl font-light tracking-wide mb-1 uppercase"
-      style={{ letterSpacing: "0.12em" }}
-    >
-      Pilates & Matcha
-    </h2>
-    <div className="text-xs sm:text-base text-[#5e765a] tracking-wide font-medium mb-4 uppercase"
-      style={{ letterSpacing: "0.16em" }}>
-      24 мая 2025 &middot; Sheraton Terrace
-    </div>
-    {/* Партнёры — Apple style */}
-    <div className="w-full flex justify-center items-center mt-2">
-      <div className="grid grid-cols-3 gap-x-5 sm:gap-x-12 w-full max-w-xs sm:max-w-md">
-        {partners?.map((p) => (
-          <img
-            key={p.id || p.filename} alt={p.alt || "partner"}
-            src={p.src}
-            className="
-              h-10 sm:h-14 w-full object-contain
-              transition-all
-            "
-            style={{
-              minWidth: 0,           // предотвращает переполнение
-              maxHeight: "56px",     // одинаковая высота (sm: 56px)
-              filter: "grayscale(0.08) brightness(0.97)",
-            }}
-          />
-        ))}
-      </div>
-    </div>
-  </div>
-</motion.div>
-    {[mediaIdx - 1, mediaIdx + 1].map(i => {
-    const idx = (i + eventMedia.length) % eventMedia.length;
-    const m = eventMedia[idx];
-    if (m.type === "video") {
-        return (
-        <video
-            key={m.id || m.src}
-            src={m.src}
-            preload="auto"
-            muted
-            playsInline
-            tabIndex={-1}
-            style={{
-            position: 'absolute',
-            opacity: 0.01,
-            width: 1,
-            height: 1,
-            pointerEvents: 'none',
-            zIndex: -1,
-            }}
-        />
-        );
-    }
-    return null;
-    })}
-
+        {[mediaIdx - 1, mediaIdx + 1].map(i => {
+          const idx = (i + eventMedia.length) % eventMedia.length;
+          const m = eventMedia[idx];
+          if (m.type === "video") {
+            return (
+              <video
+                key={`preload-${m.id || m.src}`}
+                src={m.src}
+                preload="auto"
+                muted
+                playsInline
+                tabIndex={-1}
+                style={{
+                  position: 'absolute',
+                  opacity: 0.01,
+                  width: 1,
+                  height: 1,
+                  pointerEvents: 'none',
+                  zIndex: -1,
+                }}
+              />
+            );
+          }
+          return null;
+        })}
     </section>
   );
 }
