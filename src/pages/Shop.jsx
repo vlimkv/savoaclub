@@ -14,9 +14,9 @@ const products = [
     description:
       "Лаконичная бутылка на 600 мл для баланса и повседневной практики. Сохраняет холод. Герметична. Подходит для посудомойки.",
     media: [
-      { type: "image", src: "src/assets/shop/bottle.png" },
-      { type: "video", src: "src/assets/shop/bottle-video.mp4", poster: "src/assets/shop/bottle.png" },
-      { type: "image", src: "src/assets/shop/3dddbde0-d8ae-485d-8790-5bf8edf67881.jpg" }
+      { type: "image", src: "/shop/bottle.png" },
+      { type: "video", src: "/shop/bottle-video.mp4", poster: "/shop/bottle.png" },
+      { type: "image", src: "/shop/3dddbde0-d8ae-485d-8790-5bf8edf67881.jpg" }
     ],
     badge: "New",
   },
