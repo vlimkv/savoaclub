@@ -10,18 +10,12 @@ function ProductCard({ product }) {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [modalIndex, setModalIndex] = useState(0);
 
-  const [zoom, setZoom] = useState(1);
-  const [offset, setOffset] = useState({ x: 0, y: 0 });
-
   const currentMedia = product.media[index];
   const isPng = currentMedia.type === "image" && currentMedia.src.endsWith(".png");
 
   const containerRef = useRef(null);
   const startX = useRef(0);
   const deltaX = useRef(0);
-  const lastTouch = useRef(null);
-  const isDragging = useRef(false);
-  const dragStart = useRef({ x: 0, y: 0 });
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -47,11 +41,6 @@ function ProductCard({ product }) {
     deltaX.current = 0;
   };
 
-  const resetZoom = () => {
-    setZoom(1);
-    setOffset({ x: 0, y: 0 });
-  };
-
   return (
     <>
       <motion.div
@@ -66,7 +55,6 @@ function ProductCard({ product }) {
           onClick={() => {
             setModalIndex(index);
             setIsModalOpen(true);
-            resetZoom();
           }}
           onTouchStart={handleTouchStart}
           onTouchMove={handleTouchMove}
@@ -141,87 +129,24 @@ function ProductCard({ product }) {
         </button>
       </motion.div>
 
-      {/* MODAL с pinch/drag/zoom */}
+      {/* MODAL — видео без звука, фото без зума, iOS/ПК-friendly */}
       <AnimatePresence>
         {isModalOpen && (
           <motion.div
             key="modal"
             className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4"
-            initial={{ opacity: 0, scale: 0.95 }}
-            animate={{ opacity: 1, scale: 1 }}
-            exit={{ opacity: 0, scale: 0.95 }}
-            transition={{ duration: 0.25 }}
-            onClick={() => {
-              setIsModalOpen(false);
-              resetZoom();
-            }}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.2 }}
+            onClick={() => setIsModalOpen(false)}
           >
             <motion.div
-              key="modal-content"
-              className="relative w-full max-w-[92vw] max-h-[92vh] rounded-2xl overflow-hidden shadow-xl"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: 0.25 }}
+              className="relative w-full max-w-5xl max-h-[92vh] rounded-2xl overflow-hidden shadow-xl bg-black flex items-center justify-center"
               onClick={(e) => e.stopPropagation()}
-              onWheel={(e) => {
-                if (e.ctrlKey || e.deltaY !== 0) {
-                  setZoom((z) => Math.max(1, Math.min(5, z - e.deltaY * 0.01)));
-                }
-              }}
-              onTouchStart={(e) => {
-                if (e.touches.length === 2) {
-                  const dx = e.touches[0].clientX - e.touches[1].clientX;
-                  const dy = e.touches[0].clientY - e.touches[1].clientY;
-                  lastTouch.current = Math.sqrt(dx * dx + dy * dy);
-                } else if (e.touches.length === 1) {
-                  isDragging.current = true;
-                  dragStart.current = {
-                    x: e.touches[0].clientX - offset.x,
-                    y: e.touches[0].clientY - offset.y,
-                  };
-                }
-              }}
-              onTouchMove={(e) => {
-                if (e.touches.length === 2 && lastTouch.current != null) {
-                  const dx = e.touches[0].clientX - e.touches[1].clientX;
-                  const dy = e.touches[0].clientY - e.touches[1].clientY;
-                  const newDist = Math.sqrt(dx * dx + dy * dy);
-                  const scaleChange = newDist / lastTouch.current;
-                  setZoom((z) => Math.max(1, Math.min(5, z * scaleChange)));
-                  lastTouch.current = newDist;
-                } else if (e.touches.length === 1 && isDragging.current) {
-                  setOffset({
-                    x: e.touches[0].clientX - dragStart.current.x,
-                    y: e.touches[0].clientY - dragStart.current.y,
-                  });
-                }
-              }}
-              onTouchEnd={() => {
-                isDragging.current = false;
-                lastTouch.current = null;
-              }}
-              onMouseDown={(e) => {
-                isDragging.current = true;
-                dragStart.current = { x: e.clientX - offset.x, y: e.clientY - offset.y };
-              }}
-              onMouseMove={(e) => {
-                if (isDragging.current) {
-                  setOffset({ x: e.clientX - dragStart.current.x, y: e.clientY - dragStart.current.y });
-                }
-              }}
-              onMouseUp={() => {
-                isDragging.current = false;
-              }}
-              onMouseLeave={() => {
-                isDragging.current = false;
-              }}
             >
               <button
-                onClick={() => {
-                  setIsModalOpen(false);
-                  resetZoom();
-                }}
+                onClick={() => setIsModalOpen(false)}
                 className="absolute top-4 right-4 text-white text-4xl font-light z-10 hover:opacity-60 transition"
               >
                 &times;
@@ -231,31 +156,20 @@ function ProductCard({ product }) {
                 <img
                   src={product.media[modalIndex].src}
                   alt="modal"
-                  className={`w-full h-full object-contain ${
+                  className={`max-h-[90vh] max-w-full object-contain ${
                     product.media[modalIndex].src.endsWith(".png") ? "bg-transparent" : "bg-black"
                   }`}
-                  style={{
-                    transform: `scale(${zoom}) translate(${offset.x / zoom}px, ${offset.y / zoom}px)`,
-                    transition: "transform 0.1s ease-out",
-                    touchAction: "none",
-                    userSelect: "none",
-                  }}
                 />
               ) : (
                 <video
                   src={product.media[modalIndex].src}
                   poster={product.media[modalIndex].poster}
-                  className="w-full h-full object-contain bg-black"
+                  className="max-h-[90vh] max-w-full object-contain bg-black"
                   autoPlay
-                  muted={false}
-                  controls
+                  muted
                   playsInline
-                  style={{
-                    transform: `scale(${zoom}) translate(${offset.x / zoom}px, ${offset.y / zoom}px)`,
-                    transition: "transform 0.1s ease-out",
-                    touchAction: "none",
-                    userSelect: "none",
-                  }}
+                  loop
+                  controls={false}
                 />
               )}
 
