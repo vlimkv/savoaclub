@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { useCartContext } from "../context/CartContext";
 
 const AUTOCHANGE_INTERVAL = 5000;
@@ -10,12 +10,18 @@ function ProductCard({ product }) {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [modalIndex, setModalIndex] = useState(0);
 
+  const [zoom, setZoom] = useState(1);
+  const [offset, setOffset] = useState({ x: 0, y: 0 });
+
   const currentMedia = product.media[index];
   const isPng = currentMedia.type === "image" && currentMedia.src.endsWith(".png");
 
   const containerRef = useRef(null);
   const startX = useRef(0);
   const deltaX = useRef(0);
+  const lastTouch = useRef(null);
+  const isDragging = useRef(false);
+  const dragStart = useRef({ x: 0, y: 0 });
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -41,6 +47,11 @@ function ProductCard({ product }) {
     deltaX.current = 0;
   };
 
+  const resetZoom = () => {
+    setZoom(1);
+    setOffset({ x: 0, y: 0 });
+  };
+
   return (
     <>
       <motion.div
@@ -55,6 +66,7 @@ function ProductCard({ product }) {
           onClick={() => {
             setModalIndex(index);
             setIsModalOpen(true);
+            resetZoom();
           }}
           onTouchStart={handleTouchStart}
           onTouchMove={handleTouchMove}
@@ -129,58 +141,142 @@ function ProductCard({ product }) {
         </button>
       </motion.div>
 
-      {/* MODAL */}
-      {isModalOpen && (
-        <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 transition-all duration-300">
-            {/* Кнопка закрытия */}
-            <button
-            onClick={() => setIsModalOpen(false)}
-            className="absolute top-4 right-4 text-white text-4xl font-light hover:opacity-60 transition"
+      {/* MODAL с pinch/drag/zoom */}
+      <AnimatePresence>
+        {isModalOpen && (
+          <motion.div
+            key="modal"
+            className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4"
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.95 }}
+            transition={{ duration: 0.25 }}
+            onClick={() => {
+              setIsModalOpen(false);
+              resetZoom();
+            }}
+          >
+            <motion.div
+              key="modal-content"
+              className="relative w-full max-w-[92vw] max-h-[92vh] rounded-2xl overflow-hidden shadow-xl"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.25 }}
+              onClick={(e) => e.stopPropagation()}
+              onWheel={(e) => {
+                if (e.ctrlKey || e.deltaY !== 0) {
+                  setZoom((z) => Math.max(1, Math.min(5, z - e.deltaY * 0.01)));
+                }
+              }}
+              onTouchStart={(e) => {
+                if (e.touches.length === 2) {
+                  const dx = e.touches[0].clientX - e.touches[1].clientX;
+                  const dy = e.touches[0].clientY - e.touches[1].clientY;
+                  lastTouch.current = Math.sqrt(dx * dx + dy * dy);
+                } else if (e.touches.length === 1) {
+                  isDragging.current = true;
+                  dragStart.current = {
+                    x: e.touches[0].clientX - offset.x,
+                    y: e.touches[0].clientY - offset.y,
+                  };
+                }
+              }}
+              onTouchMove={(e) => {
+                if (e.touches.length === 2 && lastTouch.current != null) {
+                  const dx = e.touches[0].clientX - e.touches[1].clientX;
+                  const dy = e.touches[0].clientY - e.touches[1].clientY;
+                  const newDist = Math.sqrt(dx * dx + dy * dy);
+                  const scaleChange = newDist / lastTouch.current;
+                  setZoom((z) => Math.max(1, Math.min(5, z * scaleChange)));
+                  lastTouch.current = newDist;
+                } else if (e.touches.length === 1 && isDragging.current) {
+                  setOffset({
+                    x: e.touches[0].clientX - dragStart.current.x,
+                    y: e.touches[0].clientY - dragStart.current.y,
+                  });
+                }
+              }}
+              onTouchEnd={() => {
+                isDragging.current = false;
+                lastTouch.current = null;
+              }}
+              onMouseDown={(e) => {
+                isDragging.current = true;
+                dragStart.current = { x: e.clientX - offset.x, y: e.clientY - offset.y };
+              }}
+              onMouseMove={(e) => {
+                if (isDragging.current) {
+                  setOffset({ x: e.clientX - dragStart.current.x, y: e.clientY - dragStart.current.y });
+                }
+              }}
+              onMouseUp={() => {
+                isDragging.current = false;
+              }}
+              onMouseLeave={() => {
+                isDragging.current = false;
+              }}
             >
-            &times;
-            </button>
+              <button
+                onClick={() => {
+                  setIsModalOpen(false);
+                  resetZoom();
+                }}
+                className="absolute top-4 right-4 text-white text-4xl font-light z-10 hover:opacity-60 transition"
+              >
+                &times;
+              </button>
 
-            <div className="relative w-full max-w-[92vw] max-h-[92vh] flex items-center justify-center rounded-2xl overflow-hidden bg-black shadow-xl">
-            {/* Картинка или видео */}
-            {product.media[modalIndex].type === "image" ? (
+              {product.media[modalIndex].type === "image" ? (
                 <img
-                src={product.media[modalIndex].src}
-                alt="modal"
-                className="w-full h-full object-contain"
+                  src={product.media[modalIndex].src}
+                  alt="modal"
+                  className={`w-full h-full object-contain ${
+                    product.media[modalIndex].src.endsWith(".png") ? "bg-transparent" : "bg-black"
+                  }`}
+                  style={{
+                    transform: `scale(${zoom}) translate(${offset.x / zoom}px, ${offset.y / zoom}px)`,
+                    transition: "transform 0.1s ease-out",
+                    touchAction: "none",
+                    userSelect: "none",
+                  }}
                 />
-            ) : (
+              ) : (
                 <video
-                src={product.media[modalIndex].src}
-                poster={product.media[modalIndex].poster}
-                className="w-full h-full object-contain"
-                autoPlay
-                muted={false}
-                controls
-                playsInline
+                  src={product.media[modalIndex].src}
+                  poster={product.media[modalIndex].poster}
+                  className="w-full h-full object-contain bg-black"
+                  autoPlay
+                  muted={false}
+                  controls
+                  playsInline
+                  style={{
+                    transform: `scale(${zoom}) translate(${offset.x / zoom}px, ${offset.y / zoom}px)`,
+                    transition: "transform 0.1s ease-out",
+                    touchAction: "none",
+                    userSelect: "none",
+                  }}
                 />
-            )}
+              )}
 
-            {/* Стрелка влево */}
-            <button
+              <button
                 onClick={() =>
-                setModalIndex((prev) => (prev - 1 + product.media.length) % product.media.length)
+                  setModalIndex((prev) => (prev - 1 + product.media.length) % product.media.length)
                 }
                 className="absolute left-2 sm:left-4 top-1/2 -translate-y-1/2 bg-white/20 hover:bg-white/30 text-white rounded-full w-10 h-10 flex items-center justify-center backdrop-blur-md transition"
-            >
+              >
                 &#8592;
-            </button>
-
-            {/* Стрелка вправо */}
-            <button
+              </button>
+              <button
                 onClick={() => setModalIndex((prev) => (prev + 1) % product.media.length)}
                 className="absolute right-2 sm:right-4 top-1/2 -translate-y-1/2 bg-white/20 hover:bg-white/30 text-white rounded-full w-10 h-10 flex items-center justify-center backdrop-blur-md transition"
-            >
+              >
                 &#8594;
-            </button>
-            </div>
-        </div>
+              </button>
+            </motion.div>
+          </motion.div>
         )}
-
+      </AnimatePresence>
     </>
   );
 }
